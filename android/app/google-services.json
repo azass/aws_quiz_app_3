@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1014919650783",
+    "firebase_url": "https://awsquizapp-96f17.firebaseio.com",
+    "project_id": "awsquizapp-96f17",
+    "storage_bucket": "awsquizapp-96f17.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1014919650783:android:0aab7f48024e8468ff386a",
+        "android_client_info": {
+          "package_name": "awsquizapp.aws_quiz_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1014919650783-sc8ssqfh2a591il94t8ptft5igtk582v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARkIfkDTUbc0mZ5xMGf8ph7QshEPkcjDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1014919650783-sc8ssqfh2a591il94t8ptft5igtk582v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

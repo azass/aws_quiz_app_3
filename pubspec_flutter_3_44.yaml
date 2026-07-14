@@ -1,0 +1,58 @@
+name: aws_quiz_app
+description: AWS exam
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.12.2 <4.0.0"
+  flutter: ">=3.44.6"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.9
+  font_awesome_flutter: ^11.0.0
+  http: ^1.6.0
+  flutter_custom_clippers: ^2.1.0
+  html_unescape: ^2.0.0
+  auto_size_text: ^3.0.0
+  percent_indicator: ^4.2.5
+  url_launcher: ^6.3.2
+  flutter_rating_bar: ^4.0.1
+  fluttertoast: ^9.1.0
+  local_auth: ^3.0.2
+  flutter_local_notifications: ^22.0.1
+  scrollable_positioned_list: ^0.3.8
+  reorderables: ^0.6.0
+  flutter_radio_slider: ^0.1.0
+  uuid: ^4.5.3
+  provider: ^6.1.5+1
+  amazon_cognito_identity_dart_2: ^4.0.0
+  flutter_markdown: ^0.7.7+1
+  markdown: ^7.3.1
+  flutter_html: ^3.0.0
+  syncfusion_flutter_charts: ^34.1.31
+  intl: ^0.20.3
+  google_fonts: ^8.1.0
+  flutter_svg: ^2.3.0
+  data_table_2: ^2.7.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - images/
+    - assets/sounds/gomenne.mp3
+
+  fonts:
+    - family: NotoScansJP
+      fonts:
+        - asset: fonts/NotoSansJP-Regular.otf

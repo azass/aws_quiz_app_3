@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- Sign-in Button Colors -->
+    <color name="common_google_signin_btn_text_dark_default">@android:color/white</color>
+    <color name="common_google_signin_btn_text_dark_pressed">@android:color/white</color>
+    <color name="common_google_signin_btn_text_dark_disabled">#FFAAAAAA</color>
+    <color name="common_google_signin_btn_text_dark_focused">@android:color/white</color>
+    <color name="common_google_signin_btn_text_light_default">#FF737373</color>
+    <color name="common_google_signin_btn_text_light_pressed">@android:color/white</color>
+    <color name="common_google_signin_btn_text_light_disabled">#FFAAAAAA</color>
+    <color name="common_google_signin_btn_text_light_focused">#FF737373</color>
+    <color name="common_google_signin_btn_text_default_background">#FFDD4B39</color>
+    <color name="common_google_action_bar_splitter">#d2d2d2</color>
+</resources>
