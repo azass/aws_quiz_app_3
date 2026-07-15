@@ -16,8 +16,8 @@ import 'keyword_editor.dart';
 
 class KeywordDialog extends StatefulWidget {
   final Tag tag;
-  QuizPageState quizPage = null;
-  Question question = null;
+  final QuizPageState? quizPage;
+  final Question? question;
   KeywordDialog(this.tag, this.quizPage, this.question);
 
   @override
@@ -37,13 +37,13 @@ class KeywordDialogState extends State<KeywordDialog> {
     Colors.pink,
     Colors.redAccent[200],
     Colors.pink[200],
-    Colors.deepOrange[300]
+    Colors.deepOrange[300],
   ];
   List<Widget> keywordWidgets = [];
   List<Term> keywords = [];
   bool _isUpdateTagKeywords = false;
   bool _isUpdateQuestKeywords = false;
-  Question _question = null;
+  Question? _question;
   bool _edit = true;
 
   void addKeyword(Term keyword) {
@@ -61,15 +61,10 @@ class KeywordDialogState extends State<KeywordDialog> {
   @override
   void initState() {
     super.initState();
-    List select = [];
-    if (forQuestion()) {
+    final question = widget.question;
+    if (widget.quizPage != null && question != null) {
       _edit = false;
-      _question = widget.question;
-      if (_question.tagKeywords.containsKey(widget.tag.tagName)) {
-        select = _question.tagKeywords[widget.tag.tagName]
-            .map((keyword) => keyword["term_id"])
-            .toList();
-      }
+      _question = question;
     }
     keywords = widget.tag.terms;
   }
@@ -82,60 +77,78 @@ class KeywordDialogState extends State<KeywordDialog> {
     }
   }
 
-  Color getFontColor(Term keyword) {}
-
   @override
   Widget build(BuildContext context) {
     keywordWidgets = [];
     keywords.asMap().forEach(
-        (int index, Term keyword) => keywordWidgets.add(_buildTag(index)));
-    return Column(children: [
-      Divider(color: Colors.black),
-      Material(
+      (int index, Term keyword) => keywordWidgets.add(_buildTag(index)),
+    );
+    return Column(
+      children: [
+        Divider(color: Colors.black),
+        Material(
           child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0),
-              child: Stack(children: [
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 0.0,
+            ),
+            child: Stack(
+              children: [
                 Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                        padding: const EdgeInsets.only(
-                            top: 15.0, right: 10.0, bottom: 0.0, left: 10.0),
-                        child: Text(
-                          widget.tag.tagName,
-                          style: TextStyle(
-                              fontSize: 18.0,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.left,
-                        ))),
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: 15.0,
+                      right: 10.0,
+                      bottom: 0.0,
+                      left: 10.0,
+                    ),
+                    child: Text(
+                      widget.tag.tagName,
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ),
                 Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      iconSize: 50,
-                      icon: Icon(Icons.assignment_rounded),
-                      color: (_isUpdateTagKeywords || _isUpdateQuestKeywords)
-                          ? Colors.deepOrange
-                          : Colors.indigo,
-                      padding: const EdgeInsets.all(0.0),
-                      onPressed: () {
-                        if (_isUpdateTagKeywords || _isUpdateQuestKeywords) {
-                          setState(() {
-                            _updateKeywords();
-                          });
-                        } else {
-                          Navigator.pop(context, true);
-                          if (forQuestion()) {
-                            setState(
-                                () {widget.quizPage.setState(() => {});});
-                          }
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    iconSize: 50,
+                    icon: Icon(Icons.assignment_rounded),
+                    color: (_isUpdateTagKeywords || _isUpdateQuestKeywords)
+                        ? Colors.deepOrange
+                        : Colors.indigo,
+                    padding: const EdgeInsets.all(0.0),
+                    onPressed: () {
+                      if (_isUpdateTagKeywords || _isUpdateQuestKeywords) {
+                        setState(() {
+                          _updateKeywords();
+                        });
+                      } else {
+                        Navigator.pop(context, true);
+                        final quizPage = widget.quizPage;
+                        if (quizPage != null) {
+                          quizPage.setState(() => {});
                         }
-                      },
-                    ))
-              ]))),
-      Divider(color: Colors.black),
-      Container(height: 580, child: SingleChildScrollView(child: _buildTile())),
-    ]);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Divider(color: Colors.black),
+        Container(
+          height: 580,
+          child: SingleChildScrollView(child: _buildTile()),
+        ),
+      ],
+    );
   }
 
   Widget _buildTag(int index) {
@@ -148,12 +161,16 @@ class KeywordDialogState extends State<KeywordDialog> {
           // foregroundColor: MaterialStateProperty.all(Colors.orange),
           backgroundColor: WidgetStateProperty.all(getColor(keyword)),
           padding: WidgetStateProperty.all(
-              const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0)),
+            const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+          ),
           textStyle: WidgetStateProperty.all(
-              const TextStyle(color: Colors.orange, fontSize: 12)),
-          shape: WidgetStateProperty.all(RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(9.0 + 3.0 * keyword.level),
-          )),
+            const TextStyle(color: Colors.orange, fontSize: 12),
+          ),
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9.0 + 3.0 * keyword.level),
+            ),
+          ),
         ),
         onPressed: () {
           if (_edit) {
@@ -195,12 +212,15 @@ class KeywordDialogState extends State<KeywordDialog> {
       onPressed: () {
         setState(() {
           int newIndex = keywords.length;
-          keywords.add(Term(
+          keywords.add(
+            Term(
               termId: Term.newTermId(),
               word: "",
               level: 1,
               selected: false,
-              changed: "new"));
+              changed: "new",
+            ),
+          );
           keywordWidgets.add(_buildTag(newIndex));
           _openKeywordEditor(context, newIndex);
           _isUpdateTagKeywords = true;
@@ -209,28 +229,30 @@ class KeywordDialogState extends State<KeywordDialog> {
     );
 
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Material(child: wrap),
-          OverflowBar(
-            alignment: MainAxisAlignment.end,
-            children: <Widget>[
-              if (forQuestion())
-                Material(
-                    child: Switch(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Material(child: wrap),
+        OverflowBar(
+          alignment: MainAxisAlignment.end,
+          children: <Widget>[
+            if (forQuestion())
+              Material(
+                child: Switch(
                   value: _edit,
                   activeThumbColor: Colors.blue,
                   activeTrackColor: Colors.green,
                   inactiveThumbColor: Colors.orange,
                   inactiveTrackColor: Colors.red,
                   onChanged: (value) => setState(() => _edit = value),
-                )),
-              if (forQuestion()) Material(child: _buildAddButton()),
-              Material(child: newButton),
-            ],
-          ),
-          SizedBox(height: 20.0),
-        ]);
+                ),
+              ),
+            if (forQuestion()) Material(child: _buildAddButton()),
+            Material(child: newButton),
+          ],
+        ),
+        SizedBox(height: 20.0),
+      ],
+    );
   }
 
   Widget _buildAddButton() {
@@ -240,24 +262,30 @@ class KeywordDialogState extends State<KeywordDialog> {
       color: Colors.deepOrange,
       padding: const EdgeInsets.all(0.0),
       onPressed: () async {
+        final question = _question;
+        if (question == null) return;
         showLoading(context);
-        List<Word> words = await getWords(_question.questId);
+        List<Word> words = await getWords(question.questId);
         Navigator.pop(context);
         WordsDialog wordsDialog = WordsDialog(words);
 
         await showDialog<bool>(
-            context: context,
-            builder: (_) {
-              return wordsDialog;
-            });
+          context: context,
+          builder: (_) {
+            return wordsDialog;
+          },
+        );
         setState(() {
           if (wordsDialog.selectedWord != "") {
-            keywords.add(Term(
+            keywords.add(
+              Term(
                 termId: Term.newTermId(),
                 word: wordsDialog.selectedWord,
                 level: wordsDialog.selectedLevel,
                 selected: wordsDialog.selected,
-                changed: "new"));
+                changed: "new",
+              ),
+            );
             _isUpdateTagKeywords = true;
           }
         });
@@ -313,7 +341,9 @@ class KeywordDialogState extends State<KeywordDialog> {
       debugPrint(_tagKeywords);
     }
     if (_isUpdateQuestKeywords) {
-      _questId = _question.questId;
+      final question = _question;
+      if (question == null) return;
+      _questId = question.questId;
       List elems = keywords.where((keyword) => keyword.selected).map((keyword) {
         var elem = {};
         elem["term_id"] = keyword.termId;
@@ -322,13 +352,18 @@ class KeywordDialogState extends State<KeywordDialog> {
         elem["sort"] = keyword.sort;
         return elem;
       }).toList();
-      _question.tagKeywords[widget.tag.tagName] = elems;
-      _questKeywords = jsonEncode(_question.tagKeywords);
+      question.tagKeywords[widget.tag.tagName] = elems;
+      _questKeywords = jsonEncode(question.tagKeywords);
       debugPrint(_questKeywords);
     }
 
     updateKeywords(
-        widget.tag.provider, _tagNo, _tagKeywords, _questId, _questKeywords);
+      widget.tag.provider,
+      _tagNo,
+      _tagKeywords,
+      _questId,
+      _questKeywords,
+    );
     _isUpdateTagKeywords = false;
     _isUpdateQuestKeywords = false;
     setState(() {});
@@ -339,27 +374,38 @@ class KeywordDialogState extends State<KeywordDialog> {
   }
 }
 
-showKeywordDialog(BuildContext context, Tag tag, QuizPageState quizPage,
-    Question question) async {
+showKeywordDialog(
+  BuildContext context,
+  Tag tag,
+  QuizPageState? quizPage,
+  Question? question,
+) async {
   showLoading(context);
   tag.terms = await getTerms(tag);
   Navigator.pop(context);
   showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black45,
-      transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (BuildContext buildContext, Animation animation,
-          Animation secondaryAnimation) {
-        return Center(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black45,
+    transitionDuration: const Duration(milliseconds: 200),
+    pageBuilder:
+        (
+          BuildContext buildContext,
+          Animation animation,
+          Animation secondaryAnimation,
+        ) {
+          return Center(
             child: Container(
-                width: MediaQuery.of(context).size.width - 10,
-                height: MediaQuery.of(context).size.height - 20,
-                padding: EdgeInsets.all(2),
-                color: Colors.white,
-                child: KeywordDialog(tag, quizPage, question)));
-      });
+              width: MediaQuery.of(context).size.width - 10,
+              height: MediaQuery.of(context).size.height - 20,
+              padding: EdgeInsets.all(2),
+              color: Colors.white,
+              child: KeywordDialog(tag, quizPage, question),
+            ),
+          );
+        },
+  );
 }
 
 List<Widget> buildPickerOptions() {

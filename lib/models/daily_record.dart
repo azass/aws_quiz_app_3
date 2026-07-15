@@ -9,16 +9,22 @@ class DailyRecord {
   final int executedTime;
   final int point;
 
-  const DailyRecord(this.answerDate, this.executeCount, this.correctCount,
-      this.point, this.executedTime);
+  const DailyRecord(
+    this.answerDate,
+    this.executeCount,
+    this.correctCount,
+    this.point,
+    this.executedTime,
+  );
 
   DailyRecord.fromMap(Map<String, dynamic> data)
-      : answerDate = data['answer_date'],
-        executeCount = data['execute_count'],
-        correctCount = data['correct_count'],
-        executedTime =
-            (data['executed_time'] == null) ? 0 : data['executed_time'],
-        point = data['point'];
+    : answerDate = data['answer_date'],
+      executeCount = data['execute_count'],
+      correctCount = data['correct_count'],
+      executedTime = (data['executed_time'] == null)
+          ? 0
+          : data['executed_time'],
+      point = data['point'];
 
   static Map<String, DailyRecord> fromData(List<Map<String, dynamic>> data) {
     Map<String, DailyRecord> map = {};
@@ -42,8 +48,9 @@ class DailyRecord {
     for (int i = 0; i < 6; i++) {
       List<DailyRecord> _records = [];
       for (int j = 0; j < 7; j++) {
-        if (map.containsKey(formater.format(_date))) {
-          _records.add(map[formater.format(_date)]);
+        final record = map[formater.format(_date)];
+        if (record != null) {
+          _records.add(record);
         } else {
           _records.add(DailyRecord(formater.format(_date), 0, 0, 0, 0));
         }

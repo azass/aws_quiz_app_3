@@ -9,7 +9,8 @@ import '../util.dart';
 class QuizScoring extends StatefulWidget {
   final Question question;
   final State parent;
-  const QuizScoring({Key key, this.question, this.parent}) : super(key: key);
+  const QuizScoring({Key? key, required this.question, required this.parent})
+    : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _QuizScoringState();
@@ -33,8 +34,11 @@ class _QuizScoringState extends State<QuizScoring> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Wrap(
+      alignment: WrapAlignment.spaceEvenly,
+      runAlignment: WrapAlignment.center,
+      spacing: 4.0,
+      runSpacing: 4.0,
       children: this._buildScoringOptions(),
     );
   }
@@ -42,11 +46,20 @@ class _QuizScoringState extends State<QuizScoring> {
   List<Widget> _buildScoringOptions() {
     List<Widget> tempList = [];
     this.getScoringLabel().forEach((key, label) {
-      tempList.add(Padding(
+      tempList.add(
+        Padding(
           padding: EdgeInsets.all(0.0),
           child: Container(
-            child: QuizChip(label, key, _isCheck, _onChanged),
-          )));
+            child: QuizChip(
+              label,
+              key,
+              _isCheck,
+              _onChanged,
+              fontSize: 12.0,
+            ),
+          ),
+        ),
+      );
     });
     return tempList;
   }
@@ -82,14 +95,19 @@ class _QuizScoringState extends State<QuizScoring> {
       _moreStudy();
     }
     Navigator.pop(context);
-    setState(() {widget.parent.setState(() => {});});
+    setState(() {
+      widget.parent.setState(() => {});
+    });
   }
 
   void _moreStudy() {
     widget.question.bugPoints["more_study"] = true;
     widget.question.isBug = widget.question.bugPoints.isNotEmpty;
-    updateBugReport(widget.question.questId, widget.question.isBug,
-        widget.question.bugPoints);
+    updateBugReport(
+      widget.question.questId,
+      widget.question.isBug,
+      widget.question.bugPoints,
+    );
   }
 
   void _analyze() {
@@ -99,8 +117,8 @@ class _QuizScoringState extends State<QuizScoring> {
           DateTime now = DateTime.now();
           DateFormat dateFormat = DateFormat('yyyy-MM-dd');
           DateTime weekBefore = now.subtract(Duration(days: 7));
-          String previousAnswerDate =
-              widget.question.histories[1].answerDate.substring(10);
+          String previousAnswerDate = widget.question.histories[1].answerDate
+              .substring(10);
           if (previousAnswerDate.compareTo(dateFormat.format(weekBefore)) ==
               1) {
             widget.question.isWeak = true;

@@ -24,21 +24,22 @@ Map<String, String> headers(String token) {
 }
 
 Future<List<Question>> getQuestions(
-    List<String> selectedExam,
-    List<int> selectedCategory,
-    List<int> executeTimes,
-    List<int> mistakeTimes,
-    List<int> correctTimes,
-    int noOfQuestions,
-    List<int> otherOptions,
-    List<int> priorities,
-    List<int> exclusives,
-    List<int> scorings,
-    List<int> targetDaysAgos,
-    int retention,
-    int order,
-    bool exceptNotReady,
-    String token) async {
+  List<String> selectedExam,
+  List<int> selectedCategory,
+  List<int> executeTimes,
+  List<int> mistakeTimes,
+  List<int> correctTimes,
+  int noOfQuestions,
+  List<int> otherOptions,
+  List<int> priorities,
+  List<int> exclusives,
+  List<int> scorings,
+  List<int> targetDaysAgos,
+  int retention,
+  int order,
+  bool exceptNotReady,
+  String token,
+) async {
   Map<String, dynamic> _payload = {"Method": "SEARCH_QUESTIONS"};
   Map<String, dynamic> _args = {};
   _args["exam_ids"] = selectedExam;
@@ -58,19 +59,24 @@ Future<List<Question>> getQuestions(
   _args["except_not_ready"] = exceptNotReady;
   _payload["Args"] = _args;
   String payload = JsonEncoder().convert(_payload);
-  http.Response res = await http.post(Uri.parse(baseApi + "questions"),
-      body: payload, headers: headers(token));
+  http.Response res = await http.post(
+    Uri.parse(baseApi + "questions"),
+    body: payload,
+    headers: headers(token),
+  );
   String jso = res.body;
-  List<Map<String, dynamic>> questions =
-      List<Map<String, dynamic>>.from(json.decode(jso));
+  List<Map<String, dynamic>> questions = List<Map<String, dynamic>>.from(
+    json.decode(jso),
+  );
   return Question.fromRecordData(questions);
 }
 
 Future<Question> getQuestion(Question question, String token) async {
   try {
     http.Response res = await http.get(
-        Uri.parse(baseApi + "question?quest_id=" + question.questId),
-        headers: headers(token));
+      Uri.parse(baseApi + "question?quest_id=" + question.questId),
+      headers: headers(token),
+    );
     String jso = res.body;
     Map<String, dynamic> result = json.decode(jso);
     // if (result["Count"] > 0) {
@@ -82,12 +88,14 @@ Future<Question> getQuestion(Question question, String token) async {
   } catch (e) {
     print('quest_id=${question.questId}');
     print('Something really unknown: $e');
-    return null;
+    rethrow;
   }
 }
 
 Future<List<ScoringTableItem>> getTagScoringTable(
-    String provider, List<String> examIds) async {
+  String provider,
+  List<String> examIds,
+) async {
   try {
     Map<String, dynamic> _payload = {"Method": "TAG_SCORING_TABLE"};
     Map<String, dynamic> _args = {};
@@ -97,16 +105,23 @@ Future<List<ScoringTableItem>> getTagScoringTable(
     String payload = JsonEncoder().convert(_payload);
     http.Response res = await http.post(Uri.parse(baseUrl), body: payload);
     String jso = res.body;
-    List<Map<String, dynamic>> data =
-        List<Map<String, dynamic>>.from(json.decode(jso));
+    List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(
+      json.decode(jso),
+    );
+    for (final item in data) {
+      item['provider'] ??= provider;
+    }
     return ScoringTableItem.fromDataList(data);
   } catch (e) {
     print(e);
+    rethrow;
   }
 }
 
 Future<Map<String, dynamic>> recordResult(
-    Question question, String token) async {
+  Question question,
+  String token,
+) async {
   Map<String, dynamic> _payload = {"Method": "RECORD"};
   Map<String, dynamic> _args = {};
   _args["test_id"] = question.testId;
@@ -117,8 +132,11 @@ Future<Map<String, dynamic>> recordResult(
   _args["maturity"] = question.maturity.toInt();
   _payload["Args"] = _args;
   String payload = JsonEncoder().convert(_payload);
-  http.Response res = await http.post(Uri.parse(baseUrl),
-      body: payload, headers: headers(token));
+  http.Response res = await http.post(
+    Uri.parse(baseUrl),
+    body: payload,
+    headers: headers(token),
+  );
   String jso = res.body;
   return json.decode(jso);
 }
@@ -150,8 +168,9 @@ void finishQuiz(String answerDate, int executedTime) async {
 }
 
 Future<Report> getReport(String examId) async {
-  http.Response res =
-      await http.get(Uri.parse(baseApi + "report?exam_id=$examId"));
+  http.Response res = await http.get(
+    Uri.parse(baseApi + "report?exam_id=$examId"),
+  );
   String jso = utf8.decode(res.bodyBytes);
   print(jso);
   Map<String, dynamic> result = json.decode(jso);
@@ -162,15 +181,22 @@ Future<Report> getReport(String examId) async {
 }
 
 Future<Report> getReportByTag(Exam exam, Tag tag) async {
-  http.Response res = await http.get(Uri.parse(baseApi +
-      "report?exam_id=${exam.examId}&provider=${tag.provider}&tag_no=${tag.tagNo}"));
+  http.Response res = await http.get(
+    Uri.parse(
+      baseApi +
+          "report?exam_id=${exam.examId}&provider=${tag.provider}&tag_no=${tag.tagNo}",
+    ),
+  );
   String jso = utf8.decode(res.bodyBytes);
   Map<String, dynamic> result = json.decode(jso);
   return Report.from(exam, tag, result);
 }
 
 void updateBugReport(
-    String questId, bool isBug, Map<String, dynamic> bugPoints) async {
+  String questId,
+  bool isBug,
+  Map<String, dynamic> bugPoints,
+) async {
   Map<String, dynamic> _payload = {"Method": "IS_BUG"};
   Map<String, dynamic> _args = {};
   _args["quest_id"] = questId;
@@ -190,7 +216,7 @@ void updateScoring(String questId, int scoring) async {
 void updateMoreStudy(String questId, bool moreStudy) async {
   Map<String, dynamic> _payload = {
     "quest_id": questId,
-    "more_study": moreStudy
+    "more_study": moreStudy,
   };
   String payload = JsonEncoder().convert(_payload);
   await http.put(Uri.parse(baseApi + "question"), body: payload);
@@ -199,7 +225,7 @@ void updateMoreStudy(String questId, bool moreStudy) async {
 void updateLearningNote(String questId, String learningNote) async {
   Map<String, dynamic> _payload = {
     "quest_id": questId,
-    "learning_note": learningNote
+    "learning_note": learningNote,
   };
   String payload = JsonEncoder().convert(_payload);
   await http.put(Uri.parse(baseApi + "question"), body: payload);
@@ -214,7 +240,7 @@ void updateIsEasy(String questId, bool isEasy) async {
 void updateIsDifficult(String questId, bool isDifficult) async {
   Map<String, dynamic> _payload = {
     "quest_id": questId,
-    "is_difficult": isDifficult
+    "is_difficult": isDifficult,
   };
   String payload = JsonEncoder().convert(_payload);
   await http.put(Uri.parse(baseApi + "question"), body: payload);
@@ -229,7 +255,7 @@ void updateIsWeak(String questId, bool isWeak) async {
 void updateIsMandatory(String questId, bool isMandatory) async {
   Map<String, dynamic> _payload = {
     "quest_id": questId,
-    "is_mandatory": isMandatory
+    "is_mandatory": isMandatory,
   };
   String payload = JsonEncoder().convert(_payload);
   await http.put(Uri.parse(baseApi + "question"), body: payload);
@@ -248,11 +274,13 @@ void updatePriority(String questId, double priority) async {
 }
 
 Future<List<Word>> getWords(String questId) async {
-  http.Response res =
-      await http.get(Uri.parse(baseApi + "words?quest_id=$questId"));
+  http.Response res = await http.get(
+    Uri.parse(baseApi + "words?quest_id=$questId"),
+  );
   String jso = utf8.decode(res.bodyBytes);
-  List<Map<String, dynamic>> words =
-      List<Map<String, dynamic>>.from(json.decode(jso));
+  List<Map<String, dynamic>> words = List<Map<String, dynamic>>.from(
+    json.decode(jso),
+  );
   return Word.fromData(questId, words);
 }
 
@@ -267,7 +295,9 @@ void hideWord(Word word) async {
 }
 
 Future<Map<String, DailyRecord>> getDailyRecords(
-    String fromDate, String toDate) async {
+  String fromDate,
+  String toDate,
+) async {
   Map<String, dynamic> _payload = {"Method": "DAILY_RECORDS"};
   Map<String, dynamic> _args = {};
   _args["from_date"] = fromDate;
@@ -277,8 +307,9 @@ Future<Map<String, DailyRecord>> getDailyRecords(
 
   http.Response res = await http.post(Uri.parse(baseUrl), body: payload);
   String jso = utf8.decode(res.bodyBytes);
-  List<Map<String, dynamic>> records =
-      List<Map<String, dynamic>>.from(json.decode(jso));
+  List<Map<String, dynamic>> records = List<Map<String, dynamic>>.from(
+    json.decode(jso),
+  );
   return DailyRecord.fromData(records);
 }
 
@@ -292,7 +323,9 @@ void putDailyRecord(String today) async {
 }
 
 Future<List<Question>> searchDayHistory(
-    String answerDate, BuildContext context) async {
+  String answerDate,
+  BuildContext context,
+) async {
   // final UserState userState = Provider.of<UserState>(context);
   Map<String, dynamic> _payload = {"Method": "DAY_HISTORY"};
   Map<String, dynamic> _args = {};
@@ -301,8 +334,9 @@ Future<List<Question>> searchDayHistory(
   String payload = JsonEncoder().convert(_payload);
   http.Response res = await http.post(Uri.parse(baseUrl), body: payload);
   String jso = utf8.decode(res.bodyBytes);
-  List<Map<String, dynamic>> questions =
-      List<Map<String, dynamic>>.from(json.decode(jso));
+  List<Map<String, dynamic>> questions = List<Map<String, dynamic>>.from(
+    json.decode(jso),
+  );
   return Question.fromHistoryData(questions);
 }
 
@@ -314,30 +348,41 @@ Future<List<Question>> searchAnswerHistories(String questId) async {
   String payload = JsonEncoder().convert(_payload);
   http.Response res = await http.post(Uri.parse(baseUrl), body: payload);
   String jso = utf8.decode(res.bodyBytes);
-  List<Map<String, dynamic>> questions =
-      List<Map<String, dynamic>>.from(json.decode(jso));
+  List<Map<String, dynamic>> questions = List<Map<String, dynamic>>.from(
+    json.decode(jso),
+  );
   return Question.fromHistoryData(questions);
 }
 
 Future<List<CloudProvider>> getCloudProviders() async {
   http.Response res = await http.get(Uri.parse(baseApi + "get_providers"));
   String jso = utf8.decode(res.bodyBytes);
-  List<Map<String, dynamic>> providers =
-      List<Map<String, dynamic>>.from(json.decode(jso));
+  List<Map<String, dynamic>> providers = List<Map<String, dynamic>>.from(
+    json.decode(jso),
+  );
   return CloudProvider.fromData(providers);
 }
 
 Future<List<Term>> getTerms(Tag tag) async {
-  http.Response res = await http.get(Uri.parse(
-      baseApi + "keywords?provider=${tag.provider}&tag_no=${tag.tagNo}"));
+  http.Response res = await http.get(
+    Uri.parse(
+      baseApi + "keywords?provider=${tag.provider}&tag_no=${tag.tagNo}",
+    ),
+  );
   String jso = utf8.decode(res.bodyBytes);
-  List<Map<String, dynamic>> terms =
-      List<Map<String, dynamic>>.from(json.decode(jso));
+  List<Map<String, dynamic>> terms = List<Map<String, dynamic>>.from(
+    json.decode(jso),
+  );
   return Term.fromData(terms);
 }
 
-void updateKeywords(String provider, String tagNo, String tagKeywords,
-    String questId, String questKeywords) {
+void updateKeywords(
+  String provider,
+  String tagNo,
+  String tagKeywords,
+  String questId,
+  String questKeywords,
+) {
   Map<String, dynamic> _payload = {};
   _payload["provider"] = provider;
   _payload["tag_no"] = tagNo;
@@ -359,11 +404,13 @@ void launchURL(String url) async {
 Future<Map<String, dynamic>> updateRetention(String questId) async {
   Map<String, dynamic> _payload = {
     "Method": "calculate_total",
-    "quest_id": questId
+    "quest_id": questId,
   };
   String payload = JsonEncoder().convert(_payload);
-  http.Response res =
-      await http.put(Uri.parse(baseApi + "retention"), body: payload);
+  http.Response res = await http.put(
+    Uri.parse(baseApi + "retention"),
+    body: payload,
+  );
   String jso = utf8.decode(res.bodyBytes);
   Map<String, dynamic> result = json.decode(jso);
   return result;
@@ -381,8 +428,9 @@ void updateAnswerNote(String testId, String questId, String answerNote) async {
 }
 
 Future<List<KnowhowNote>> getKnowhowNotes(String examId) async {
-  http.Response res =
-  await http.get(Uri.parse(baseApi + "knowhow?exam_id=$examId"));
+  http.Response res = await http.get(
+    Uri.parse(baseApi + "knowhow?exam_id=$examId"),
+  );
   // 日本語を含むため bodyBytes を明示的に UTF-8 デコードする
   String jso = utf8.decode(res.bodyBytes);
   dynamic decoded = json.decode(jso);

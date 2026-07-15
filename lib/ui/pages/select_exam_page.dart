@@ -13,7 +13,7 @@ import 'package:flutter_custom_clippers/flutter_custom_clippers.dart';
 
 class SelectExamPage extends StatefulWidget {
   final CloudProvider provider;
-  SelectExamPage({Key key, this.provider}) : super(key: key);
+  SelectExamPage({Key? key, required this.provider}) : super(key: key);
 
   @override
   _SelectExamPageState createState() => _SelectExamPageState();
@@ -45,108 +45,111 @@ class _SelectExamPageState extends State<SelectExamPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.provider.displayName),
-          elevation: 0,
-          actions: <Widget>[
-            Switch(
-              value: _isReport,
-              activeThumbColor: Colors.blue,
-              activeTrackColor: Colors.green,
-              inactiveThumbColor: Colors.orange,
-              inactiveTrackColor: Colors.red,
-              onChanged: _changeSwitch,
-            )
-          ],
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: Container(
-          width: 110.0,
-          height: 110.0,
-          margin: EdgeInsets.only(bottom: 10.0),
-          child: (_processing)
-              ? CircularProgressIndicator()
-              : FloatingActionButton.extended(
-                  label: Text(
-                    _isReport ? " REPORT " : " START ",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                  backgroundColor:
-                      _isReport ? Colors.blue[500] : Colors.deepOrange[500],
-                  onPressed: () async {
-                    if (_isReport) {
-                      if (_selectedExam.length > 0) {
-                        showLoading(context);
-                        Report report = await getReport(_selectedExam[0]);
-                        Navigator.pop(context);
-                        _reportPressed(context, report);
-                      }
-                    } else {
-                      _startPressed(context);
+      appBar: AppBar(
+        title: Text(widget.provider.displayName),
+        elevation: 0,
+        actions: <Widget>[
+          Switch(
+            value: _isReport,
+            activeThumbColor: Colors.blue,
+            activeTrackColor: Colors.green,
+            inactiveThumbColor: Colors.orange,
+            inactiveTrackColor: Colors.red,
+            onChanged: _changeSwitch,
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Container(
+        width: 110.0,
+        height: 110.0,
+        margin: EdgeInsets.only(bottom: 10.0),
+        child: (_processing)
+            ? CircularProgressIndicator()
+            : FloatingActionButton(
+                shape: const CircleBorder(),
+                child: Text(
+                  _isReport ? " REPORT " : " START ",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                backgroundColor: _isReport
+                    ? Colors.blue[500]
+                    : Colors.deepOrange[500],
+                onPressed: () async {
+                  if (_isReport) {
+                    if (_selectedExam.length > 0) {
+                      showLoading(context);
+                      Report report = await getReport(_selectedExam[0]);
+                      Navigator.pop(context);
+                      _reportPressed(context, report);
                     }
-                  },
-                ),
-        ),
-        body: Stack(
-          children: <Widget>[
-            ClipPath(
-              clipper: WaveClipperTwo(),
-              child: Container(
-                decoration:
-                    BoxDecoration(color: Theme.of(context).primaryColor),
-                height: 260,
+                  } else {
+                    _startPressed(context);
+                  }
+                },
               ),
+      ),
+      body: Stack(
+        children: <Widget>[
+          ClipPath(
+            clipper: WaveClipperTwo(),
+            child: Container(
+              decoration: BoxDecoration(color: BACK_COLOR),
+              height: 260,
             ),
-            CustomScrollView(
-              physics: BouncingScrollPhysics(),
-              slivers: <Widget>[
-                SliverPadding(
-                  padding: const EdgeInsets.all(10.0),
-                  sliver: SliverGrid(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: getCrossAxisCount(),
-                          childAspectRatio: 1.0,
-                          crossAxisSpacing: 5.0,
-                          mainAxisSpacing: 5.0),
-                      delegate: SliverChildBuilderDelegate(
-                        _buildExamItem,
-                        childCount: widget.provider.exams.length,
-                      )),
-                ),
-                // SliverPadding(
-                //   padding: const EdgeInsets.all(10.0),
-                //   sliver: SliverGrid(
-                //       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                //           crossAxisCount: getCrossAxisCount(),
-                //           childAspectRatio: 1.6,
-                //           crossAxisSpacing: 5.0,
-                //           mainAxisSpacing: 5.0),
-                //       delegate: SliverChildBuilderDelegate(
-                //         _buildTagButton,
-                //         childCount: _selectableTags.length,
-                //       )),
-                // ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 60.0),
+          ),
+          CustomScrollView(
+            physics: BouncingScrollPhysics(),
+            slivers: <Widget>[
+              SliverPadding(
+                padding: const EdgeInsets.all(10.0),
+                sliver: SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: getCrossAxisCount(),
+                    childAspectRatio: 1.0,
+                    crossAxisSpacing: 5.0,
+                    mainAxisSpacing: 5.0,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    _buildExamItem,
+                    childCount: widget.provider.exams.length,
                   ),
                 ),
-              ],
-            ),
-          ],
-        ));
+              ),
+              // SliverPadding(
+              //   padding: const EdgeInsets.all(10.0),
+              //   sliver: SliverGrid(
+              //       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              //           crossAxisCount: getCrossAxisCount(),
+              //           childAspectRatio: 1.6,
+              //           crossAxisSpacing: 5.0,
+              //           mainAxisSpacing: 5.0),
+              //       delegate: SliverChildBuilderDelegate(
+              //         _buildTagButton,
+              //         childCount: _selectableTags.length,
+              //       )),
+              // ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 60.0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   int getCrossAxisCount() {
     return MediaQuery.of(context).size.width > 1000
         ? 7
         : MediaQuery.of(context).size.width > 600
-            ? 5
-            : 4;
+        ? 5
+        : 4;
   }
 
   Widget _buildExamItem(BuildContext context, int index) {
@@ -170,9 +173,7 @@ class _SelectExamPageState extends State<SelectExamPage> {
           _setupSelectableTags();
         });
       },
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       color: _selectedExam.contains(exam.examId)
           ? Colors.indigoAccent[400]
           : Colors.grey.shade800,
@@ -189,13 +190,13 @@ class _SelectExamPageState extends State<SelectExamPage> {
     if (exam.iconPath != '') {
       tempList.add(Expanded(child: Image.asset(exam.iconPath)));
     }
-    tempList.add(Text(
-      exam.examName,
-      style: TextStyle(
-        fontSize: (exam.iconPath != '') ? 8.0 : 12.0,
+    tempList.add(
+      Text(
+        exam.examName,
+        style: TextStyle(fontSize: (exam.iconPath != '') ? 8.0 : 12.0),
+        textAlign: TextAlign.center,
       ),
-      textAlign: TextAlign.center,
-    ));
+    );
     return tempList;
   }
 
@@ -276,24 +277,24 @@ class _SelectExamPageState extends State<SelectExamPage> {
 
   _startPressed(BuildContext context) async {
     showLoading(context);
-    List<ScoringTableItem> table =
-        await getTagScoringTable(widget.provider.name, _selectedExam);
+    List<ScoringTableItem> table = await getTagScoringTable(
+      widget.provider.name,
+      _selectedExam,
+    );
     Navigator.pop(context);
     showModalBottomSheet(
       context: context,
-      builder: (sheetContext) => BottomSheet(
-        builder: (_) => QuizConditionsDialog(
-          selectedExam: _selectedExam,
-          // selectedCategory: _selectedCategory,
-          table: table
-        ),
-        onClosing: () {},
+      builder: (sheetContext) => QuizConditionsDialog(
+        selectedExam: _selectedExam,
+        // selectedCategory: _selectedCategory,
+        table: table,
       ),
     );
   }
 
   _reportPressed(BuildContext context, Report report) {
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => ReportPage(report: report)));
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => ReportPage(report: report)));
   }
 }

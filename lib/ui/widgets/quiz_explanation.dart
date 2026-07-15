@@ -21,18 +21,22 @@ class QuizExplanation extends StatelessWidget {
     );
   }
 
-  List _getExplanations(BuildContext context) {
+  List<Widget> _getExplanations(BuildContext context) {
     List<Widget> explanations = <Widget>[];
     if (_question.explanation.length > 0) {
       explanations.add(_buildMemo());
     }
     _question.tagKeywords.forEach((tagKeywordsKey, terms) {
       Tag tag = _question.getTag(tagKeywordsKey);
-      explanations.add(Align(
+      explanations.add(
+        Align(
           alignment: Alignment.centerLeft,
           child: Padding(
-              padding: EdgeInsets.only(left: 2.0, top: 4.0),
-              child: _buildKeyword(context, tag, Colors.lightBlue))));
+            padding: EdgeInsets.only(left: 2.0, top: 4.0),
+            child: _buildKeyword(context, tag, Colors.lightBlue),
+          ),
+        ),
+      );
       if (terms.isNotEmpty) {
         explanations.add(_buildDocument(context, terms));
       }
@@ -48,8 +52,11 @@ class QuizExplanation extends StatelessWidget {
       _terms.add(term);
       if (term['description'] != null) {
         List<dynamic> description = term['description']
-            .where((explanation) => (explanation.containsKey('quest_ids') &&
-                explanation['quest_ids'].contains(_question.questId)))
+            .where(
+              (explanation) =>
+                  (explanation.containsKey('quest_ids') &&
+                  explanation['quest_ids'].contains(_question.questId)),
+            )
             .toList();
         if (description.length > 0 ||
             index == terms.length - 1 ||
@@ -57,10 +64,13 @@ class QuizExplanation extends StatelessWidget {
                 term["level"] >= terms[index + 1]["level"])) {
           // explanations.add(SizedBox(height: 8.0));
           final _tags = getTagsInExplanation(_terms);
-          documents.add(Container(
+          documents.add(
+            Container(
               padding: const EdgeInsets.only(top: 2.0),
               alignment: Alignment.centerLeft,
-              child: Column(children: _tags)));
+              child: Column(children: _tags),
+            ),
+          );
         }
         description.forEach((explanation) {
           if (explanation.containsKey('quest_ids') &&
@@ -71,12 +81,17 @@ class QuizExplanation extends StatelessWidget {
       }
     });
     return Card(
-        color: CARD_COLOR,
-        child: Padding(
-            padding: const EdgeInsets.only(
-                left: 10.0, right: 10.0, top: 4, bottom: 10.0),
-            child:
-                Column(mainAxisSize: MainAxisSize.min, children: documents)));
+      color: CARD_COLOR,
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: 10.0,
+          right: 10.0,
+          top: 4,
+          bottom: 10.0,
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: documents),
+      ),
+    );
   }
 
   List<Widget> getTagsInExplanation(List<dynamic> terms) {
@@ -88,47 +103,60 @@ class QuizExplanation extends StatelessWidget {
           breadcrumbs = breadcrumbs + term["word"] + " > ";
         } else {
           if (breadcrumbs.isNotEmpty) {
-            _tags.add(Align(
+            _tags.add(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
-                    padding: EdgeInsets.all(2.0),
-                    child: Text(
-                      breadcrumbs,
-                      style: TextStyle(
-                          fontSize: 10.0,
-                          color: Colors.pink,
-                          fontWeight: FontWeight.w600),
-                    ))));
+                  padding: EdgeInsets.all(2.0),
+                  child: Text(
+                    breadcrumbs,
+                    style: TextStyle(
+                      fontSize: 10.0,
+                      color: Colors.pink,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            );
           }
-          _tags.add(Align(
+          _tags.add(
+            Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-                  padding: EdgeInsets.all(2.0),
-                  child: _buildKeyword3(
-                      term['word'],
-                      KeywordDialogState.keywordColors[term["level"] - 1]
-                          ['color']))));
+                padding: EdgeInsets.all(2.0),
+                child: _buildKeyword3(
+                  term['word'],
+                  KeywordDialogState.keywordColors[term["level"] - 1]['color'],
+                ),
+              ),
+            ),
+          );
           if (term.containsKey('explain') &&
               term['explain'].toString().isNotEmpty) {
-            _tags.add(Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
+            _tags.add(
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
                   alignment: Alignment.bottomLeft,
-                  padding: EdgeInsets.only(
-                    left: 5.0,
-                    top: 0.5,
-                  ),
+                  padding: EdgeInsets.only(left: 5.0, top: 0.5),
                   child: Wrap(
-                      // alignment: Alignment.bottomLeft,
-                      children: [
-                        SizedBox(height: 5.0),
-                        Text(term['explain'],
-                            style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.pinkAccent))
-                      ])),
-            ));
+                    // alignment: Alignment.bottomLeft,
+                    children: [
+                      SizedBox(height: 5.0),
+                      Text(
+                        term['explain'],
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.pinkAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
           }
         }
       }
@@ -141,9 +169,13 @@ class QuizExplanation extends StatelessWidget {
       height: 30,
       margin: EdgeInsets.only(left: 2),
       child: ElevatedButton(
-        child: Text(tag.tagName),
+        child: Transform.translate(
+          offset: const Offset(0, -0.4),
+          child: Text(tag.tagName),
+        ),
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white, backgroundColor: color,
+          foregroundColor: Colors.white,
+          backgroundColor: color,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -153,16 +185,11 @@ class QuizExplanation extends StatelessWidget {
     );
   }
 
-  Widget _buildKeyword2(String text, Color color) {
+  Widget buildKeyword2(String text, Color color) {
     return Container(
       height: 28,
-      margin: EdgeInsets.symmetric(
-        vertical: 0.0,
-        horizontal: 0.0,
-      ),
-      padding: EdgeInsets.only(
-        bottom: 0.8,
-      ),
+      margin: EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+      padding: EdgeInsets.only(bottom: 0.8),
       child: Chip(
         label: Text(
           text,
@@ -177,41 +204,52 @@ class QuizExplanation extends StatelessWidget {
     );
   }
 
-  Widget _buildKeyword4(String text, Color color) {
+  Widget buildKeyword4(String text, Color color) {
     return Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shadowColor: Colors.blueGrey[900],
+      color: color,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+        child: Container(
+          padding: EdgeInsets.all(4.0),
+          alignment: Alignment.centerLeft,
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 9.0,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
         ),
-        shadowColor: Colors.blueGrey[900],
-        color: color,
-        child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-            child: Container(
-                padding: EdgeInsets.all(4.0),
-                alignment: Alignment.centerLeft,
-                child: Text(text,
-                    style: TextStyle(
-                        fontSize: 9.0,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white)))));
+      ),
+    );
   }
 
   Widget _buildKeyword3(String text, Color color) {
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9.5, vertical: 1.0),
-        height: 20,
-        decoration: BoxDecoration(
-          color: color,
-          border: Border.all(color: color),
-          borderRadius: BorderRadius.circular(10),
+      padding: const EdgeInsets.symmetric(horizontal: 9.5, vertical: 1.0),
+      height: 20,
+      decoration: BoxDecoration(
+        color: color,
+        border: Border.all(color: color),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: FittedBox(
+        child: Transform.translate(
+          offset: const Offset(0, -0.8),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 11.0,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
         ),
-        child: FittedBox(
-          child: Text(text,
-              style: TextStyle(
-                  fontSize: 11.0,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white)),
-        ));
+      ),
+    );
   }
 
   Widget _buildMemo() {
@@ -235,33 +273,40 @@ Widget buildExplanationItem(Map<String, dynamic> explanation) {
   Widget child;
   if (explanation.containsKey("link")) {
     child = Padding(
-        padding:
-            const EdgeInsets.only(left: 8.0, right: 8.0, top: 2.0, bottom: 4.0),
-        child: QuizLink(
-            explanation["link"].toString(), explanation["url"].toString()));
+      padding: const EdgeInsets.only(
+        left: 8.0,
+        right: 8.0,
+        top: 2.0,
+        bottom: 4.0,
+      ),
+      child: QuizLink(
+        explanation["link"].toString(),
+        explanation["url"].toString(),
+      ),
+    );
   } else if (explanation.containsKey("image_path")) {
     child = Padding(
-        padding: EdgeInsets.only(top: 15.0),
-        child: QuizImage(explanation["image_path"]));
+      padding: EdgeInsets.only(top: 15.0),
+      child: QuizImage(explanation["image_path"]),
+    );
   } else {
     child = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: Align(
-            alignment: Alignment.centerLeft,
-            child: QuizMarkdown(explanation["text"])));
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: QuizMarkdown(explanation["text"]),
+      ),
+    );
   }
   // 要素間の間隔。
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 12.0),
-    child: child,
-  );
+  return Padding(padding: const EdgeInsets.only(bottom: 12.0), child: child);
 }
 
 /// Question.explanation の各要素を provider の値ごとにグループ化し、
 /// スワイプ＆スクロール可能なタブで表示するメモウィジェット。
 class _ProviderTabbedMemo extends StatefulWidget {
   final List<dynamic> explanations;
-  const _ProviderTabbedMemo(this.explanations, {Key key}) : super(key: key);
+  const _ProviderTabbedMemo(this.explanations, {Key? key}) : super(key: key);
 
   @override
   State<_ProviderTabbedMemo> createState() => _ProviderTabbedMemoState();
@@ -282,9 +327,9 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
     "bedrock",
   ];
 
-  TabController _tabController;
-  List<String> _providers;
-  Map<String, List<dynamic>> _grouped;
+  TabController? _tabController;
+  List<String> _providers = [];
+  Map<String, List<dynamic>> _grouped = {};
 
   @override
   void initState() {
@@ -300,7 +345,7 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
@@ -319,7 +364,10 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
         grouped[key] = [];
         seen.add(key);
       }
-      grouped[key].add(explanation);
+      final items = grouped[key];
+      if (items != null) {
+        items.add(explanation);
+      }
     }
 
     // 指定順序（共通, agent, gemini, openai, bedrock）に並べ替える。
@@ -364,10 +412,7 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
             labelColor: Colors.teal[800],
             unselectedLabelColor: Colors.teal[300],
             indicatorColor: Colors.teal[700],
-            labelStyle: TextStyle(
-              fontSize: 13.0,
-              fontWeight: FontWeight.bold,
-            ),
+            labelStyle: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),
             tabs: _providers.map((p) => Tab(text: _tabLabel(p))).toList(),
           ),
           // スワイプで切替可能・各タブ内は縦スクロール可能なタブビュー。
@@ -379,14 +424,16 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
               controller: _tabController,
               physics: const BouncingScrollPhysics(),
               children: _providers.map((p) {
-                final items = _grouped[p];
+                final items = _grouped[p] ?? const <dynamic>[];
                 return SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 10.0),
+                    horizontal: 10.0,
+                    vertical: 10.0,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      ...items.map((e) => buildExplanationItem(e))
+                      ...items.map((e) => buildExplanationItem(e)),
                     ],
                   ),
                 );
@@ -401,12 +448,16 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
   // タブなし（provider が 1 種類以下）の場合の従来表示。
   Widget _buildMemoCard(List<dynamic> explanations) {
     return Card(
-        color: CARD_COLOR,
-        child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-            child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-              ...explanations.map((e) => buildExplanationItem(e))
-            ])));
+      color: CARD_COLOR,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ...explanations.map((e) => buildExplanationItem(e)),
+          ],
+        ),
+      ),
+    );
   }
 }

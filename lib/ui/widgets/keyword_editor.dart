@@ -6,14 +6,19 @@ import 'keyword_dialog.dart';
 
 class KeywordEditor extends StatefulWidget {
   final int index;
-  KeywordDialogState keywordDialogState;
+  final KeywordDialogState keywordDialogState;
   KeywordEditor(this.index, this.keywordDialogState);
 
   @override
-  State<StatefulWidget> createState() => _KeywordEditorState();
+  State<StatefulWidget> createState() =>
+      _KeywordEditorState(keywordDialogState.getKeyword(index));
 }
 
 class _KeywordEditorState extends State<KeywordEditor> {
+  _KeywordEditorState(this._keyword)
+    : _inputText = _keyword.word,
+      _inputLevel = _keyword.level;
+
   bool _isUpdate = false;
   Term _keyword;
   String _inputText;
@@ -23,15 +28,13 @@ class _KeywordEditorState extends State<KeywordEditor> {
   @override
   void initState() {
     super.initState();
-    _keyword = widget.keywordDialogState.getKeyword(widget.index);
-    _inputText = _keyword.word;
-    _inputLevel = _keyword.level;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: <Widget>[
-      Padding(
+    return Column(
+      children: <Widget>[
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
           child: Stack(
             children: <Widget>[
@@ -45,70 +48,78 @@ class _KeywordEditorState extends State<KeywordEditor> {
                 ),
               ),
               Align(
-                  alignment: Alignment.bottomRight,
-                  child: IconButton(
-                    icon: Icon(Icons.integration_instructions),
-                    color: _isUpdate ? Colors.pink : Colors.grey,
-                    iconSize: 36.0,
-                    onPressed: _update,
-                  )),
+                alignment: Alignment.bottomRight,
+                child: IconButton(
+                  icon: Icon(Icons.integration_instructions),
+                  color: _isUpdate ? Colors.pink : Colors.grey,
+                  iconSize: 36.0,
+                  onPressed: _update,
+                ),
+              ),
             ],
-          )),
-      SizedBox(height: 10.0,),
-      Padding(
+          ),
+        ),
+        SizedBox(height: 10.0),
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
           child: Row(
             children: [
               Form(
-                  key: _formKey,
-                  child: Container(
-                      padding: const EdgeInsets.all(0.0),
-                      width: 370,
-                      child: TextFormField(
-                        initialValue: _keyword.word,
-                        decoration: InputDecoration(
-                          labelText: 'KEYWORD',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.pink,
-                            ),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return "Pease Enter some text.";
-                          } else {
-                            return null;
-                          }
-                        },
-                        onChanged: (value) => _notify(),
-                        onSaved: (value) => _inputText = value,
-                      ))),
+                key: _formKey,
+                child: Container(
+                  padding: const EdgeInsets.all(0.0),
+                  width: 370,
+                  child: TextFormField(
+                    initialValue: _keyword.word,
+                    decoration: InputDecoration(
+                      labelText: 'KEYWORD',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.pink),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Pease Enter some text.";
+                      } else {
+                        return null;
+                      }
+                    },
+                    onChanged: (value) => _notify(),
+                    onSaved: (value) => _inputText = value ?? '',
+                  ),
+                ),
+              ),
               Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.all(5.0),
-                      child: CupertinoPicker(
-                        backgroundColor: Colors.white,
-                        itemExtent: 50,
-                        scrollController: FixedExtentScrollController(
-                            initialItem: _keyword.level - 1),
-                        children: buildPickerOptions(),
-                        onSelectedItemChanged: (value) {
-                          setState(() {
-                            _inputLevel = value + 1;
-                            _notify();
-                          });
-                        },
-                      ))),
+                child: Container(
+                  padding: const EdgeInsets.all(5.0),
+                  child: CupertinoPicker(
+                    backgroundColor: Colors.white,
+                    itemExtent: 50,
+                    scrollController: FixedExtentScrollController(
+                      initialItem: _keyword.level - 1,
+                    ),
+                    children: buildPickerOptions(),
+                    onSelectedItemChanged: (value) {
+                      setState(() {
+                        _inputLevel = value + 1;
+                        _notify();
+                      });
+                    },
+                  ),
+                ),
+              ),
             ],
-          )),
-    ]);
+          ),
+        ),
+      ],
+    );
   }
 
   void _notify() {
     setState(() {
-      if (_formKey.currentState.validate()) {
-        _formKey.currentState.save();
+      final formState = _formKey.currentState;
+      if (formState != null && formState.validate()) {
+        formState.save();
       } else {
         _isUpdate = false;
       }
@@ -122,8 +133,9 @@ class _KeywordEditorState extends State<KeywordEditor> {
 
   void _update() {
     if (_isUpdate) {
-      if (_formKey.currentState.validate()) {
-        _formKey.currentState.save();
+      final formState = _formKey.currentState;
+      if (formState != null && formState.validate()) {
+        formState.save();
         _keyword.word = _inputText;
         _keyword.level = _inputLevel;
         _keyword.changed = "update";
@@ -154,10 +166,7 @@ class _KeywordEditorState extends State<KeywordEditor> {
     AlertDialog alert = AlertDialog(
       title: Text("キーワード削除"),
       content: Text("キーワードを削除しますか？"),
-      actions: [
-        cancelButton,
-        continueButton,
-      ],
+      actions: [cancelButton, continueButton],
     );
 
     showDialog(

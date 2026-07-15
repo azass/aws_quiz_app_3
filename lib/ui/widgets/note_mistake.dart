@@ -32,45 +32,50 @@ class _MistakeNoteDialogState extends State<MistakeNoteDialog> {
     noteTextController.selection = TextSelection.fromPosition(
       TextPosition(offset: noteTextController.text.length),
     );
-    return Column(children: <Widget>[
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(
+    return Column(
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Container(
               alignment: Alignment.centerLeft,
               width: 50.0,
               padding: EdgeInsets.only(left: 8.0, top: 8.0),
-              child: Icon(Icons.assignment_ind)),
-          Container(
+              child: Icon(Icons.assignment_ind),
+            ),
+            Container(
               padding: EdgeInsets.only(top: 8.0),
               child: Container(
                 height: 30.0,
                 width: 68.0,
                 child: QuizChip("復習", "", _isMoreStudy, _onChangedMoreStudy),
-              )),
-          Container(
+              ),
+            ),
+            Container(
               padding: EdgeInsets.only(top: 8.0),
               child: Container(
                 height: 30.0,
                 width: 68.0,
                 child: QuizChip("難問", "", _isDifficult, _onChangedIsDifficult),
-              )),
-          Container(
+              ),
+            ),
+            Container(
               padding: EdgeInsets.only(top: 8.0),
               child: Container(
                 height: 30.0,
                 width: 68.0,
                 child: QuizChip("弱点", "", _isWeak, _onChangedIsWeak),
-              )),
-          // Container(
-          //     padding: EdgeInsets.only(top: 8.0),
-          //     child: Container(
-          //       height: 30.0,
-          //       width: 68.0,
-          //       child: QuizChip("必須", "", _isMandatory, _onChangedIsMandatory),
-          //     )),
-          Container(
+              ),
+            ),
+            // Container(
+            //     padding: EdgeInsets.only(top: 8.0),
+            //     child: Container(
+            //       height: 30.0,
+            //       width: 68.0,
+            //       child: QuizChip("必須", "", _isMandatory, _onChangedIsMandatory),
+            //     )),
+            Container(
               alignment: Alignment.bottomCenter,
               height: 30.0,
               padding: const EdgeInsets.all(0.0),
@@ -80,17 +85,22 @@ class _MistakeNoteDialogState extends State<MistakeNoteDialog> {
                 iconSize: 24,
                 onPressed: () {
                   updateLearningNote(
-                      widget.question.questId, widget.question.learningNote);
+                    widget.question.questId,
+                    widget.question.learningNote,
+                  );
                   setState(() => widget.question.updateNote = false);
                 },
-              ))
-        ],
-      ),
-      Padding(
+              ),
+            ),
+          ],
+        ),
+        Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
             decoration: InputDecoration(
-                border: OutlineInputBorder(), labelText: "note"),
+              border: OutlineInputBorder(),
+              labelText: "note",
+            ),
             maxLines: 7,
             style: TextStyle(fontSize: 12.0),
             controller: noteTextController,
@@ -99,8 +109,10 @@ class _MistakeNoteDialogState extends State<MistakeNoteDialog> {
               if (!widget.question.updateNote)
                 setState(() => widget.question.updateNote = true);
             },
-          )),
-    ]);
+          ),
+        ),
+      ],
+    );
   }
 
   bool _isMoreStudy(String key) {
@@ -130,16 +142,6 @@ class _MistakeNoteDialogState extends State<MistakeNoteDialog> {
   void _onChangedIsWeak(String key) {
     widget.question.isWeak = !widget.question.isWeak;
     updateIsWeak(widget.question.questId, widget.question.isWeak);
-    setState(() => {});
-  }
-
-  bool _isMandatory(String key) {
-    return widget.question.isMandatory;
-  }
-
-  void _onChangedIsMandatory(String key) {
-    widget.question.isMandatory = !widget.question.isMandatory;
-    updateIsMandatory(widget.question.questId, widget.question.isMandatory);
     setState(() => {});
   }
 }

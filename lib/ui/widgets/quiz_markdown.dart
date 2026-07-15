@@ -12,45 +12,52 @@ class QuizMarkdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String _s = md.markdownToHtml(body);
-    Widget _w = Html(data: _s, style: {
-      "p": Style(
+    Html(
+      data: _s,
+      style: {
+        "p": Style(
           fontSize: FontSize(24.0),
           color: CARD_TEXT_COLOR,
-          padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 0),
-          margin: EdgeInsets.all(0),
+          padding: HtmlPaddings.symmetric(vertical: 4.0, horizontal: 0),
+          margin: Margins.zero,
           lineHeight: LineHeight(1.6),
-          whiteSpace: WhiteSpace.PRE),
-      // "ul": Style(
-      //     padding: EdgeInsets.all(2.0),
-      //     margin: EdgeInsets.all(2.0),
-      //     lineHeight: LineHeight(1.6)),
-      "li": Style(
+          whiteSpace: WhiteSpace.pre,
+        ),
+        // "ul": Style(
+        //     padding: EdgeInsets.all(2.0),
+        //     margin: EdgeInsets.all(2.0),
+        //     lineHeight: LineHeight(1.6)),
+        "li": Style(
           fontSize: FontSize(14.0),
-          padding: EdgeInsets.symmetric(vertical: 2.0),
-          margin: EdgeInsets.all(2.0),
+          padding: HtmlPaddings.symmetric(vertical: 2.0),
+          margin: Margins.all(2.0),
           lineHeight: LineHeight(1.6),
-          whiteSpace: WhiteSpace.PRE),
-      "strong": Style(
+          whiteSpace: WhiteSpace.pre,
+        ),
+        "strong": Style(
           fontSize: FontSize(15.0),
           fontWeight: FontWeight.bold,
-          color: Colors.redAccent)
-    }
-        // selectable: true,
-        // data:md.markdownToHtml(explanation["text"]),
-        //   styleSheet: MarkdownStyleSheet.fromTheme(ThemeData(
-        //       textTheme: TextTheme(
-        //           bodyText2: _quizStyle))),
-        // style: _quizStyle,
-        );
+          color: Colors.redAccent,
+        ),
+      },
+      // selectable: true,
+      // data:md.markdownToHtml(explanation["text"]),
+      //   styleSheet: MarkdownStyleSheet.fromTheme(ThemeData(
+      //       textTheme: TextTheme(
+      //           bodyText2: _quizStyle))),
+      // style: _quizStyle,
+    );
     String _body = body.replaceAll('\n', '\n\n');
     return MarkdownBody(
       data: _body,
       selectable: true,
       styleSheet: MarkdownStyleSheet(
-          p: TextStyle(
-              fontSize: 15.0,
-              color: CARD_TEXT_COLOR,
-              fontWeight: FontWeight.bold)),
+        p: TextStyle(
+          fontSize: 15.0,
+          color: CARD_TEXT_COLOR,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       styleSheetTheme: MarkdownStyleSheetBaseTheme.material,
     );
   }

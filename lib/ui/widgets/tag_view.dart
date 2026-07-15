@@ -26,43 +26,59 @@ class TagViewState extends State<TagView> {
   @override
   Widget build(BuildContext context) {
     termWidgets = [];
-    terms
-        .asMap()
-        .forEach((int index, Term term) => termWidgets.add(_buildTag(index)));
-    return Column(children: [
-      Divider(color: Colors.black),
-      Material(
+    terms.asMap().forEach(
+      (int index, Term term) => termWidgets.add(_buildTag(index)),
+    );
+    return Column(
+      children: [
+        Divider(color: Colors.black),
+        Material(
           child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0),
-              child: Stack(children: [
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 0.0,
+            ),
+            child: Stack(
+              children: [
                 Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                        padding: const EdgeInsets.only(
-                            top: 15.0, right: 10.0, bottom: 0.0, left: 10.0),
-                        child: Text(
-                          widget.tag.tagName,
-                          style: TextStyle(
-                              fontSize: 18.0,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.left,
-                        ))),
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: 15.0,
+                      right: 10.0,
+                      bottom: 0.0,
+                      left: 10.0,
+                    ),
+                    child: Text(
+                      widget.tag.tagName,
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ),
                 Align(
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      iconSize: 20,
-                      icon: Icon(Icons.close),
-                      padding: const EdgeInsets.all(0.0),
-                      onPressed: () {
-                        Navigator.pop(context, true);
-                      },
-                    ))
-              ]))),
-      Divider(color: Colors.black),
-      Expanded(child: SingleChildScrollView(child: _buildTile())),
-    ]);
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    iconSize: 20,
+                    icon: Icon(Icons.close),
+                    padding: const EdgeInsets.all(0.0),
+                    onPressed: () {
+                      Navigator.pop(context, true);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Divider(color: Colors.black),
+        Expanded(child: SingleChildScrollView(child: _buildTile())),
+      ],
+    );
   }
 
   Color getColor(Term term) {
@@ -78,12 +94,16 @@ class TagViewState extends State<TagView> {
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.all(getColor(term)),
           padding: WidgetStateProperty.all(
-              const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0)),
+            const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+          ),
           textStyle: WidgetStateProperty.all(
-              const TextStyle(color: Colors.orange, fontSize: 12)),
-          shape: WidgetStateProperty.all(RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(9.0 + 3.0 * term.level),
-          )),
+            const TextStyle(color: Colors.orange, fontSize: 12),
+          ),
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(9.0 + 3.0 * term.level),
+            ),
+          ),
         ),
         onPressed: () {
           showTermView(context, widget.tag.tagName, term);
@@ -104,11 +124,12 @@ class TagViewState extends State<TagView> {
     );
 
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Material(child: wrap),
-          SizedBox(height: 20.0),
-        ]);
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Material(child: wrap),
+        SizedBox(height: 20.0),
+      ],
+    );
   }
 }
 
@@ -117,19 +138,26 @@ showTagView(BuildContext context, Tag tag) async {
   tag.terms = await getTerms(tag);
   Navigator.pop(context);
   showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black45,
-      transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (BuildContext buildContext, Animation animation,
-          Animation secondaryAnimation) {
-        return Center(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black45,
+    transitionDuration: const Duration(milliseconds: 200),
+    pageBuilder:
+        (
+          BuildContext buildContext,
+          Animation animation,
+          Animation secondaryAnimation,
+        ) {
+          return Center(
             child: Container(
-                width: MediaQuery.of(context).size.width - 10,
-                height: MediaQuery.of(context).size.height - 20,
-                padding: EdgeInsets.all(2),
-                color: Colors.white,
-                child: TagView(tag)));
-      });
+              width: MediaQuery.of(context).size.width - 10,
+              height: MediaQuery.of(context).size.height - 20,
+              padding: EdgeInsets.all(2),
+              color: Colors.white,
+              child: TagView(tag),
+            ),
+          );
+        },
+  );
 }

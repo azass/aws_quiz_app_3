@@ -14,23 +14,38 @@ class Option {
   bool isSelected = false;
   Color bgColor = CARD_COLOR;
 
-  Option(this.code, this.type, this.text, this.imagePath, this.imageHeight,
-      this.isCorrect) {
+  Option(
+    this.code,
+    this.type,
+    this.text,
+    this.imagePath,
+    this.imageHeight,
+    this.isCorrect,
+  ) : correctValue = '' {
     if (isCorrect) {
-      bgColor = Colors.lightBlueAccent[100];
+      bgColor = Colors.lightBlueAccent.shade100;
     }
   }
 
   Option.fromSelectOptions(int index, Map<String, dynamic> data)
-      : type = data["type"],
-        // code = data["correctValue"],
-        text = data["text"],
-        selectOptions = SelectOption.fromSelectOptions(
-            index, data["selectOptions"], data["correctValue"]),
-        correctValue = data["correctValue"];
+    : code = '',
+      type = data["type"],
+      // code = data["correctValue"],
+      text = data["text"],
+      imagePath = '',
+      imageHeight = 0,
+      selectOptions = SelectOption.fromSelectOptions(
+        index,
+        data["selectOptions"],
+        data["correctValue"],
+      ),
+      correctValue = data["correctValue"];
 
   static Option fromMap(
-      int index, Map<String, dynamic> data, List<dynamic> correctAnswer) {
+    int index,
+    Map<String, dynamic> data,
+    List<dynamic> correctAnswer,
+  ) {
     if (data["type"] == "select") {
       return Option.fromSelectOptions(index, data);
     } else {
@@ -38,14 +53,15 @@ class Option {
           ? data["text"].substring(0, 1)
           : "";
       return Option(
-          _code,
-          "option",
-          getTextFrom(data),
-          (data.containsKey("image_path")) ? data['image_path'] : "",
-          (data.containsKey("image_height"))
-              ? double.parse(data["image_height"])
-              : 0.0,
-          correctAnswer.contains(_code));
+        _code,
+        "option",
+        getTextFrom(data),
+        (data.containsKey("image_path")) ? data['image_path'] : "",
+        (data.containsKey("image_height"))
+            ? double.parse(data["image_height"])
+            : 0.0,
+        correctAnswer.contains(_code),
+      );
     }
   }
 
@@ -77,7 +93,7 @@ class Option {
     }
     if (!isCorrect) {
       if (isSelected) {
-        bgColor = Colors.pinkAccent[100];
+        bgColor = Colors.pinkAccent.shade100;
       } else {
         bgColor = CARD_COLOR;
       }
@@ -95,14 +111,23 @@ class SelectOption {
 
   SelectOption(this.index, this.label, this.value, this.isCorrect) {
     if (isCorrect) {
-      bgColor = Colors.lightBlueAccent[100];
+      bgColor = Colors.lightBlueAccent.shade100;
     }
   }
   static List<SelectOption> fromSelectOptions(
-      int index, List<dynamic> data, String correctValue) {
+    int index,
+    List<dynamic> data,
+    String correctValue,
+  ) {
     return data
-        .map((option) => SelectOption(index, option["label"], option["value"],
-            option["value"] == correctValue))
+        .map(
+          (option) => SelectOption(
+            index,
+            option["label"],
+            option["value"],
+            option["value"] == correctValue,
+          ),
+        )
         .toList();
   }
 
@@ -114,7 +139,7 @@ class SelectOption {
     }
     if (!isCorrect) {
       if (isSelected) {
-        bgColor = Colors.pinkAccent[100];
+        bgColor = Colors.pinkAccent.shade100;
       } else {
         bgColor = CARD_COLOR;
       }

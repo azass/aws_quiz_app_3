@@ -18,7 +18,8 @@ import '../../main.dart';
 class HomePage extends StatefulWidget {
   final List<CloudProvider> providers;
   final List<DailyRecord> records;
-  HomePage({Key key, this.providers, this.records}) : super(key: key);
+  HomePage({Key? key, required this.providers, required this.records})
+    : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -29,8 +30,6 @@ class _HomePageState extends State<HomePage> {
   final _weekdays = ["MON", "TUE", "WED", "THU", "FRY", "SAT", "SUN"];
   List<DailyRecord> records = [];
   String _today = "";
-  bool _processing = false;
-  UserState userState;
   @override
   initState() {
     super.initState();
@@ -46,69 +45,76 @@ class _HomePageState extends State<HomePage> {
     // final UserState userState = Provider.of<UserState>(context);
     // userState.setToken("token");
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Certified Quiz'),
-          elevation: 0,
-        ),
-        body: new RefreshIndicator(
-            onRefresh: _onRefresh,
-            child: Stack(
-              children: <Widget>[
-                ClipPath(
-                  clipper: WaveClipperTwo(),
-                  child: Container(
-                    decoration:
-                        BoxDecoration(color: Theme.of(context).primaryColor),
-                    height: 260,
+      appBar: AppBar(title: Text('Certified Quiz'), elevation: 0),
+      body: new RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: Stack(
+          children: <Widget>[
+            ClipPath(
+              clipper: WaveClipperTwo(),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: BACK_COLOR,
+                ),
+                height: 260,
+              ),
+            ),
+            CustomScrollView(
+              physics: BouncingScrollPhysics(),
+              slivers: <Widget>[
+                SliverPadding(
+                  padding: const EdgeInsets.all(20.0),
+                  sliver: _buildProviderSliverGrid(context),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.only(
+                    top: 16.0,
+                    left: 8.0,
+                    right: 8.0,
+                  ),
+                  sliver: _buildCalenderHeaderSilverGrid(context),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                  sliver: _buildCalendarSilverGrid(context),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 60.0,
+                    ),
                   ),
                 ),
-                CustomScrollView(
-                  physics: BouncingScrollPhysics(),
-                  slivers: <Widget>[
-                    SliverPadding(
-                      padding: const EdgeInsets.all(20.0),
-                      sliver: _buildProviderSliverGrid(context),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.only(
-                          top: 16.0, left: 8.0, right: 8.0),
-                      sliver: _buildCalenderHeaderSilverGrid(context),
-                    ),
-                    SliverPadding(
-                      padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                      sliver: _buildCalendarSilverGrid(context),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 60.0),
-                      ),
-                    ),
-                  ],
-                ),
               ],
-            )));
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildProviderSliverGrid(BuildContext context) {
     return SliverGrid(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: getCrossAxisCount(),
-            childAspectRatio: 1.0,
-            crossAxisSpacing: 10.0,
-            mainAxisSpacing: 10.0),
-        delegate: SliverChildBuilderDelegate(
-          _buildProviderItem,
-          childCount: widget.providers.length,
-        ));
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: getCrossAxisCount(),
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10.0,
+        mainAxisSpacing: 10.0,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        _buildProviderItem,
+        childCount: widget.providers.length,
+      ),
+    );
   }
 
   int getCrossAxisCount() {
     return MediaQuery.of(context).size.width > 1000
         ? 7
         : MediaQuery.of(context).size.width > 600
-            ? 5
-            : 3;
+        ? 5
+        : 3;
   }
 
   Widget _buildProviderItem(BuildContext context, int index) {
@@ -129,7 +135,7 @@ class _HomePageState extends State<HomePage> {
           username: 'zag61728@gmail.com',
           password: 'Szkeigan2811!#%',
         );
-        CognitoUserSession session;
+        CognitoUserSession? session;
         try {
           session = await cognitoUser.authenticateUser(authDetails);
         } on CognitoUserNewPasswordRequiredException {
@@ -151,13 +157,15 @@ class _HomePageState extends State<HomePage> {
         } catch (e) {
           print(e);
         }
-        userState.setToken(session.getIdToken().getJwtToken());
+        if (session == null) return;
+        final token = session.getIdToken().getJwtToken();
+        if (token != null) {
+          userState.setToken(token);
+        }
 
         _startPressed(context, provider);
       },
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
       color: Colors.grey.shade800,
       textColor: Colors.white,
       child: Padding(
@@ -176,137 +184,161 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildCalenderHeaderSilverGrid(BuildContext context) {
     return SliverGrid(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            childAspectRatio: 2.0,
-            crossAxisSpacing: 0.0,
-            mainAxisSpacing: 0.0),
-        delegate: SliverChildBuilderDelegate(
-          _buildCalendarHeader,
-          childCount: _weekdays.length,
-        ));
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        childAspectRatio: 2.0,
+        crossAxisSpacing: 0.0,
+        mainAxisSpacing: 0.0,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        _buildCalendarHeader,
+        childCount: _weekdays.length,
+      ),
+    );
   }
 
   Widget _buildCalendarHeader(BuildContext context, int index) {
     return Card(
-        shadowColor: Colors.blueGrey[900],
-        color: Colors.blue[700],
-        child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-            child: Container(
-                padding: EdgeInsets.all(4.0),
-                alignment: Alignment.topCenter,
-                width: 60.0,
-                child: Text(_weekdays[index],
-                    style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.width > 600 ? 18.0:10.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white)))));
+      shadowColor: Colors.blueGrey[900],
+      color: Colors.blue[700],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+        child: Container(
+          padding: EdgeInsets.all(4.0),
+          alignment: Alignment.topCenter,
+          width: 60.0,
+          child: Text(
+            _weekdays[index],
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width > 600 ? 18.0 : 10.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildCalendarSilverGrid(BuildContext context) {
     return SliverGrid(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            childAspectRatio: 0.95,
-            crossAxisSpacing: 0.0,
-            mainAxisSpacing: 0.0),
-        delegate: SliverChildBuilderDelegate(
-          _buildCalendarItem,
-          childCount: records.length,
-        ));
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        childAspectRatio: 0.95,
+        crossAxisSpacing: 0.0,
+        mainAxisSpacing: 0.0,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        _buildCalendarItem,
+        childCount: records.length,
+      ),
+    );
   }
 
   Widget _buildCalendarItem(BuildContext context, int index) {
     DailyRecord record = records[index];
     return Card(
-        shadowColor: Colors.blueGrey[900],
-        elevation: 4.0,
-        color: _selectedDate.contains(record) ? Colors.blue[100] : Colors.white,
-        child: TextButton(
-            style: ButtonStyle(
-              padding: WidgetStateProperty.all(EdgeInsets.zero),
-              minimumSize: WidgetStateProperty.all(Size.zero),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            onPressed: () {
-              // _selectedDate.add(record);
-              if (record.answerDate.compareTo(_today) < 1) {
-                final UserState userState =
-                    Provider.of<UserState>(context, listen: false);
+      shadowColor: Colors.blueGrey[900],
+      elevation: 4.0,
+      color: _selectedDate.contains(record) ? Colors.blue[100] : Colors.white,
+      child: TextButton(
+        style: ButtonStyle(
+          padding: WidgetStateProperty.all(EdgeInsets.zero),
+          minimumSize: WidgetStateProperty.all(Size.zero),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        onPressed: () {
+          // _selectedDate.add(record);
+          if (record.answerDate.compareTo(_today) < 1) {
+            final UserState userState = Provider.of<UserState>(
+              context,
+              listen: false,
+            );
 
-                _dailyPressed(context, record, userState.token);
-              }
-            },
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                      padding: EdgeInsets.all(0.0),
-                      alignment: Alignment.topCenter,
-                      width: 60.0,
-                      child: Text(record.answerDate.substring(5),
-                          style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width > 600
-                                  ? 16.0
-                                  : 10.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black))),
-                  SizedBox(
-                    height: 4,
+            _dailyPressed(context, record, userState.token);
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.all(0.0),
+                alignment: Alignment.topCenter,
+                width: 60.0,
+                child: Text(
+                  record.answerDate.substring(5),
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width > 600
+                        ? 16.0
+                        : 10.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
-                  Container(
-                      padding: EdgeInsets.all(0.0),
-                      alignment: Alignment.topCenter,
-                      // width: 40.0,
-                      child: Text(
-                          (record.answerDate.compareTo(_today) == 1)
-                              ? ""
-                              : record.correctCount.toString() +
-                                  "/" +
-                                  record.executeCount.toString(),
-                          style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width > 600
-                                  ? 18.0
-                                  : 11.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepOrange))),
-                  // Container(
-                  //   padding: EdgeInsets.all(0.0),
-                  //   child: Text(
-                  //       (record.answerDate.compareTo(_today) == 1)
-                  //           ? ""
-                  //           : record.point.toString(),
-                  //       style: TextStyle(
-                  //           fontSize: 11.0,
-                  //           fontWeight: FontWeight.bold,
-                  //           color: Colors.orange)),
-                  // ),
-                ],
+                ),
               ),
-            )));
+              SizedBox(height: 4),
+              Container(
+                padding: EdgeInsets.all(0.0),
+                alignment: Alignment.topCenter,
+                // width: 40.0,
+                child: Text(
+                  (record.answerDate.compareTo(_today) == 1)
+                      ? ""
+                      : record.correctCount.toString() +
+                            "/" +
+                            record.executeCount.toString(),
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width > 600
+                        ? 18.0
+                        : 11.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepOrange,
+                  ),
+                ),
+              ),
+              // Container(
+              //   padding: EdgeInsets.all(0.0),
+              //   child: Text(
+              //       (record.answerDate.compareTo(_today) == 1)
+              //           ? ""
+              //           : record.point.toString(),
+              //       style: TextStyle(
+              //           fontSize: 11.0,
+              //           fontWeight: FontWeight.bold,
+              //           color: Colors.orange)),
+              // ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   _startPressed(BuildContext context, CloudProvider provider) async {
     showLoading(context);
     Navigator.pop(context);
-    Navigator.push(context,
-        MaterialPageRoute(builder: (_) => SelectExamPage(provider: provider)));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => SelectExamPage(provider: provider)),
+    );
   }
 
   _dailyPressed(BuildContext context, DailyRecord record, String token) async {
-    List<Question> questions =
-        await searchDayHistory(record.answerDate, context);
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => DailyRecordPage(questions: questions, record: record)));
+    List<Question> questions = await searchDayHistory(
+      record.answerDate,
+      context,
+    );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DailyRecordPage(questions: questions, record: record),
+      ),
+    );
   }
 
   Future<void> _onRefresh() async {
     records = await DailyRecord.readyDailyRecords();
-    final UserState userState = Provider.of<UserState>(context);
     setState(() => {});
   }
 }

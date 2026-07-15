@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 class TagScoringTable extends ScoringTable {
   final Exam exam;
   TagScoringTable(this.exam, List<ScoringTableItem> scoringTableItems)
-      : super(scoringTableItems);
+    : super(scoringTableItems);
 
   @override
   double tagWidth(BuildContext context) {
@@ -24,7 +24,8 @@ class TagScoringTable extends ScoringTable {
 
   _showTagScoring(BuildContext context, Tag tag) async {
     Report reportByTag = await getReportByTag(exam, tag);
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => TagScoringView(reportByTag)));
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => TagScoringView(reportByTag)));
   }
 }

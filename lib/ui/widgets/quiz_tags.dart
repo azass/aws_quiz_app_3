@@ -19,10 +19,12 @@ class QuizTags extends StatelessWidget {
       if (pageState.widget.question.tagKeywords.containsKey(tag.tagName)) {
         pageState.widget.question.tagKeywords[tag.tagName].forEach((keyword) {
           if (keyword["word"] != "is ?") {
-            tempList.add(_buildKeyword(
+            tempList.add(
+              _buildKeyword(
                 keyword["word"],
-                KeywordDialogState.keywordColors[keyword["level"] - 1]
-                    ['color']));
+                KeywordDialogState.keywordColors[keyword["level"] - 1]['color'],
+              ),
+            );
           }
         });
       }
@@ -36,13 +38,18 @@ class QuizTags extends StatelessWidget {
       child: ElevatedButton(
         child: Text(tag.tagName),
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white, backgroundColor: color,
+          foregroundColor: Colors.white,
+          backgroundColor: color,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
         ),
         onPressed: () => showKeywordDialog(
-            context, tag, pageState, pageState.widget.question),
+          context,
+          tag,
+          pageState,
+          pageState.widget.question,
+        ),
       ),
     );
   }

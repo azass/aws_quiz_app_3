@@ -8,19 +8,23 @@ class QuizQuestHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
-      Align(
+    return Stack(
+      children: [
+        Align(
           alignment: Alignment.centerLeft,
           child: Padding(
             padding: const EdgeInsets.only(top: 10.0, left: 10.0),
-            child: Text("Q ${question.examNo}",
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.blueGrey[800],
-                )),
-          )),
-      Align(
+            child: Text(
+              "Q ${question.examNo}",
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w800,
+                color: Colors.blueGrey[800],
+              ),
+            ),
+          ),
+        ),
+        Align(
           alignment: Alignment.centerLeft,
           child: Padding(
             padding: const EdgeInsets.only(top: 10.0, left: 100.0),
@@ -29,15 +33,15 @@ class QuizQuestHead extends StatelessWidget {
               itemCount: 10,
               itemSize: 20.0,
               physics: BouncingScrollPhysics(),
-              itemBuilder: (context, _) => Icon(
-                Icons.star,
-                color: Colors.yellow[400],
-              ),
+              itemBuilder: (context, _) =>
+                  Icon(Icons.star, color: Colors.yellow[400]),
             ),
-          )),
-      // Align(
-      //     alignment: Alignment.centerRight,
-      //     child: Wrap(children: _buildLarningLabel())),
-    ]);
+          ),
+        ),
+        // Align(
+        //     alignment: Alignment.centerRight,
+        //     child: Wrap(children: _buildLarningLabel())),
+      ],
+    );
   }
 }

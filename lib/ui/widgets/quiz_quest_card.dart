@@ -17,13 +17,18 @@ class QuizQuestCard extends StatelessWidget {
       margin: const EdgeInsets.all(5.0),
       child: Padding(
         padding: const EdgeInsets.only(
-            top: 10.0, right: 5.0, bottom: 20.0, left: 12.0),
+          top: 10.0,
+          right: 5.0,
+          bottom: 20.0,
+          left: 12.0,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            ...question.questionElems
-                .map((questionElem) => _buildQuestionElem(questionElem)),
+            ...question.questionElems.map(
+              (questionElem) => _buildQuestionElem(questionElem),
+            ),
           ],
         ),
       ),
@@ -46,5 +51,4 @@ class QuizQuestCard extends StatelessWidget {
       );
     }
   }
-
 }

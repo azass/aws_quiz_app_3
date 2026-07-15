@@ -8,19 +8,21 @@ class QuizImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: EdgeInsets.only(top: 15.0),
-        child: GestureDetector(
-            // child: Container(
-            //   width: MediaQuery.of(context).size.width,
-            //   height: imageHeight + 60.0,
-            //   decoration: BoxDecoration(
-            //     image: DecorationImage(
-            //       alignment: Alignment.topLeft,
-            //       image: NetworkImage(imagePath),
-            //     ),
-            //   ),
-            // ),
-            child: FittedBox(fit: BoxFit.fill, child: Image.network(imagePath)),
-            onTap: () => launchURL(imagePath)));
+      padding: EdgeInsets.only(top: 15.0),
+      child: GestureDetector(
+        // child: Container(
+        //   width: MediaQuery.of(context).size.width,
+        //   height: imageHeight + 60.0,
+        //   decoration: BoxDecoration(
+        //     image: DecorationImage(
+        //       alignment: Alignment.topLeft,
+        //       image: NetworkImage(imagePath),
+        //     ),
+        //   ),
+        // ),
+        child: FittedBox(fit: BoxFit.fill, child: Image.network(imagePath)),
+        onTap: () => launchURL(imagePath),
+      ),
+    );
   }
 }

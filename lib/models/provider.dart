@@ -9,10 +9,9 @@ class CloudProvider {
   CloudProvider(this.name, this.displayName, this.exams);
 
   CloudProvider.fromMap(Map<String, dynamic> data)
-      : name = data['name'],
-        displayName = data['display_name'],
-        exams = Exam.fromData(data['exams']);
-
+    : name = data['name'],
+      displayName = data['display_name'],
+      exams = Exam.fromData(data['exams']);
 
   static List<CloudProvider> fromData(List<Map<String, dynamic>> data) {
     return data.map((question) => CloudProvider.fromMap(question)).toList();

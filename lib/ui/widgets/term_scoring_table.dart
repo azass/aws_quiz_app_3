@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 class TermScoringTable extends ScoringTable {
   final Tag tag;
   TermScoringTable(this.tag, List<ScoringTableItem> scoringTableItems)
-      : super(scoringTableItems);
+    : super(scoringTableItems);
 
   @override
   double tagWidth(BuildContext context) {

@@ -16,10 +16,12 @@ import '../util.dart';
 
 class QuizConditionsDialog extends StatefulWidget {
   final List<String> selectedExam;
-  final Map<String, String> tagNames;
   final List<ScoringTableItem> table;
-  QuizConditionsDialog({Key key, this.selectedExam, this.tagNames, this.table})
-      : super(key: key);
+  QuizConditionsDialog({
+    Key? key,
+    required this.selectedExam,
+    required this.table,
+  }) : super(key: key);
 
   @override
   _QuizConditionsDialogState createState() => _QuizConditionsDialogState();
@@ -30,23 +32,19 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
   final _timesOption = ["すべて", "正解", "実行", "間違え"];
   final _targetOption = ["対象外", "間違え"];
   List<int> _selectedCategory = [];
-  int _noOfQuestions;
-  int _selectOpenness = 0;
+  int _noOfQuestions = -1;
   int _selectTimesOption = 0;
   int _selectTargetOption = 0;
-  List<int> _times;
-  List<int> _executeTimes;
-  List<int> _mistakeTimes;
-  List<int> _correctTimes;
-  List<int> _otherOptions;
-  int _order;
-  int _retention;
-  List<int> _maturities;
-  List<int> _priorities;
-  List<int> _scorings;
-  List<int> _targetDaysAgos;
-  List<int> _exclusives;
-  bool _processing;
+  List<int> _times = [];
+  List<int> _otherOptions = [5];
+  int _order = 2;
+  int _retention = 100;
+  List<int> _maturities = [-1];
+  List<int> _priorities = [1, 2, 3];
+  List<int> _scorings = [];
+  List<int> _targetDaysAgos = [];
+  List<int> _exclusives = [0];
+  bool _processing = false;
   bool _readOnly = false;
   bool _training = false;
   bool _shuffle = false;
@@ -57,81 +55,90 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
   @override
   void initState() {
     super.initState();
-    _noOfQuestions = -1;
-    _times = [];
-    _executeTimes = [-1];
-    _mistakeTimes = [-1];
-    _correctTimes = [-1];
-    _order = 2;
-    _otherOptions = [5];
-    _retention = 100;
-    _maturities = [-1];
-    _priorities = [1, 2, 3];
-    _scorings = [];
-    _targetDaysAgos = [];
-    _exclusives = [0];
-    _processing = false;
   }
 
   @override
   Widget build(BuildContext context) {
     _token = context.select((UserState userState) => userState.token);
 
-    return Stack(children: <Widget>[
-      Container(
+    return Stack(
+      children: <Widget>[
+        Container(
           child: PageView(
-        reverse: false,
-        controller: _pageController,
-        scrollDirection: Axis.horizontal,
-        children: [
-          _buildPage0(),
-          _buildPage(),
-          _buildPage2(),
-        ],
-      )),
-      Container(
+            reverse: false,
+            controller: _pageController,
+            scrollDirection: Axis.horizontal,
+            children: [_buildPage0(), _buildPage(), _buildPage2()],
+          ),
+        ),
+        Container(
           alignment: Alignment.bottomLeft,
           child: Padding(
-              padding: EdgeInsets.only(left: 30.0, bottom: 30.0),
-              child: QuizChip(
-                  "read only", 0, _isOnReadonlyOption, _selectReadonlyOption))),
-      Container(
+            padding: EdgeInsets.only(left: 30.0, bottom: 54.0),
+            child: QuizChip(
+              "read only",
+              0,
+              _isOnReadonlyOption,
+              _selectReadonlyOption,
+            ),
+          ),
+        ),
+        Container(
           alignment: Alignment.bottomCenter,
           child: Padding(
-              padding: EdgeInsets.only(bottom: 30.0),
-              child: _processing
-                  ? CircularProgressIndicator()
-                  : ElevatedButton(
-                      child: Text("Start Quiz"),
-                      onPressed: _startQuiz,
-                    ))),
-      Container(
+            padding: EdgeInsets.only(bottom: 48.0),
+            child: _processing
+                ? CircularProgressIndicator()
+                : ElevatedButton(
+                    child: Text("Start Quiz",style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Colors.white),),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.pink),
+                    onPressed: _startQuiz,
+                  ),
+          ),
+        ),
+        Container(
           alignment: Alignment.bottomRight,
           child: Padding(
-              padding: EdgeInsets.only(right: 30.0, bottom: 30.0),
-              child: QuizChip(" training ", 0, _isOnTrainingOption,
-                  _selectTrainingOption))),
-    ]);
+            padding: EdgeInsets.only(right: 30.0, bottom: 54.0),
+            child: QuizChip(
+              " training ",
+              0,
+              _isOnTrainingOption,
+              _selectTrainingOption,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildPage0() {
-    return Column(children: <Widget>[
-      Expanded(
+    return Column(
+      children: <Widget>[
+        Expanded(
           child: SingleChildScrollView(
-              child: Padding(
-        padding:
-            const EdgeInsets.only(top: 4.0, left: 4.0, right: 4.0, bottom: 80),
-        child: Container(
-            color: Colors.blueGrey[900],
-            child: QuizScoringTable(_selectedCategory, widget.table)),
-      )))
-    ]);
+            child: Padding(
+              padding: const EdgeInsets.only(
+                top: 4.0,
+                left: 4.0,
+                right: 4.0,
+                bottom: 80,
+              ),
+              child: Container(
+                color: Colors.blueGrey[900],
+                child: QuizScoringTable(_selectedCategory, widget.table),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildPage() {
     return Column(
       children: <Widget>[
-        SizedBox(height: 10.0),
+        SizedBox(height: 20.0),
         SizedBox(
           width: double.infinity,
           child: Wrap(
@@ -143,12 +150,16 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
               SizedBox(width: 0.0),
               ActionChip(
                 label: Text(_otherOptions.contains(-2) ? "対象外" : "すべて"),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 2.0),
                 labelStyle: TextStyle(color: Colors.white),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: const StadiumBorder(),
                 backgroundColor: _otherOptions.contains(-1)
                     ? Colors.indigo
                     : (_otherOptions.contains(-2))
-                        ? Colors.pink
-                        : Colors.grey.shade600,
+                    ? Colors.pink
+                    : Colors.grey.shade600,
                 onPressed: () => _selectOtherOptionSwitch(),
               ),
               QuizChip("復習", 0, _isOnOtherOption, _selectOtherOption),
@@ -160,7 +171,7 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
             ],
           ),
         ),
-        Text("定着度"),
+        _buildSectionTitle("定着度"),
         SizedBox(
           width: double.infinity,
           child: Wrap(
@@ -178,7 +189,11 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
               QuizChip("< 100", 100, _isOnRetention, _selectRetention),
               ActionChip(
                 label: Text("忘却"),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 2.0),
                 labelStyle: TextStyle(color: Colors.white),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: const StadiumBorder(),
                 backgroundColor: _otherOptions.contains(5)
                     ? Colors.pink
                     : Colors.grey.shade600,
@@ -189,7 +204,7 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
           ),
         ),
         // SizedBox(height: 5.0),
-        Text("実行回数／間違え回数／正解回数"),
+        _buildSectionTitle("実行回数／間違え回数／正解回数"),
         SizedBox(
           width: double.infinity,
           child: Wrap(
@@ -200,9 +215,14 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
               SizedBox(width: 0.0),
               ActionChip(
                 label: Text(_timesOption[_selectTimesOption]),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 2.0),
                 labelStyle: TextStyle(color: Colors.white),
-                backgroundColor:
-                    _selectTimesOption == 0 ? Colors.indigo : Colors.pink,
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: const StadiumBorder(),
+                backgroundColor: _selectTimesOption == 0
+                    ? Colors.indigo
+                    : Colors.pink,
                 onPressed: () => _selectTimesOptionSwitch(),
               ),
               QuizChip("０", 0, _isOnTime, _selectTimeChip),
@@ -257,10 +277,7 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
         //     ],
         //   ),
         // ),
-        Padding(
-          padding: EdgeInsets.only(top: 5.0),
-          child: Text("対象外／間違え"),
-        ),
+        _buildSectionTitle("対象外／間違え"),
         SizedBox(
           width: double.infinity,
           child: Wrap(
@@ -272,7 +289,11 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
               SizedBox(width: 0.0),
               ActionChip(
                 label: Text(_targetOption[_selectTargetOption]),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 2.0),
                 labelStyle: TextStyle(color: Colors.white),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: const StadiumBorder(),
                 backgroundColor: Colors.pink,
                 onPressed: () => _selectTargetOptionSwitch(),
               ),
@@ -305,13 +326,28 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
       _f = _selectMistakeDay;
     }
     return QuizChip(
-        labels[_selectTargetOption], values[_selectTargetOption], _isOn, _f);
+      labels[_selectTargetOption],
+      values[_selectTargetOption],
+      _isOn,
+      _f,
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12.0, bottom: 6.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: Text(title, textAlign: TextAlign.center),
+      ),
+    );
   }
 
   Widget _buildPage2() {
-    return Column(
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 80.0),
       children: <Widget>[
-        SizedBox(height: 10.0),
+        SizedBox(height: 20.0),
         SizedBox(
           width: double.infinity,
           child: Wrap(
@@ -326,14 +362,18 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
               QuizChip("シャッフル", 3, _isShuffle, _selectShuffle),
               ActionChip(
                 label: Text(_openness[_exceptNotReady ? 0 : 1]),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 2.0),
                 labelStyle: TextStyle(color: Colors.white),
+                visualDensity: VisualDensity.compact,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: const StadiumBorder(),
                 backgroundColor: Colors.indigo,
                 onPressed: () => _selectOpennessSwitch(),
               ),
             ],
           ),
         ),
-        Text("問題数"),
+        _buildSectionTitle("問題数"),
         SizedBox(
           width: double.infinity,
           child: Wrap(
@@ -355,7 +395,7 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
             ],
           ),
         ),
-        Text("優先度"),
+        _buildSectionTitle("優先度"),
         SizedBox(
           width: double.infinity,
           child: Wrap(
@@ -373,11 +413,7 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
             ],
           ),
         ),
-        SizedBox(height: 8.0),
-        Padding(
-          padding: EdgeInsets.only(bottom: 10.0),
-          child: Text("自信レベル"),
-        ),
+        _buildSectionTitle("自信レベル"),
         SizedBox(
           width: double.infinity,
           child: Wrap(
@@ -409,10 +445,6 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
         ),
       ],
     );
-  }
-
-  Color _bgColor(bool isSelected) {
-    return isSelected ? Colors.indigo : Colors.grey.shade600;
   }
 
   _isOnNoOfQuestions(int i) {
@@ -459,30 +491,6 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
     if (_selectTimesOption != 0) {
       setState(() => _times = _selectTime(_times, i));
     }
-  }
-
-  _isOnExecuteTime(int i) {
-    return _executeTimes.contains(i);
-  }
-
-  _selectExecuteTime(int i) {
-    setState(() => _executeTimes = _selectTime(_executeTimes, i));
-  }
-
-  _isOnMistakeTime(int i) {
-    return _mistakeTimes.contains(i);
-  }
-
-  _selectMistakeTime(int i) {
-    setState(() => _mistakeTimes = _selectTime(_mistakeTimes, i));
-  }
-
-  _isOnCorrectTime(int i) {
-    return _correctTimes.contains(i);
-  }
-
-  _selectCorrectTime(int i) {
-    setState(() => _correctTimes = _selectTime(_correctTimes, i));
   }
 
   List<int> _toggleChip(List<int> times, int i) {
@@ -580,11 +588,11 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
     setState(() => _retention = i);
   }
 
-  _isOnMaturity(int i) {
+  isOnMaturity(int i) {
     return _maturities.contains(i);
   }
 
-  _selectMaturity(int i) {
+  selectMaturity(int i) {
     setState(() => _maturities = _selectTime(_maturities, i));
   }
 
@@ -632,7 +640,9 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
   _selectExclusive(int i) {
     setState(() {
       _exclusives = _selectTime2(
-          _exclusives.where((n) => ![7, 14, 30].contains(n)).toList(), i);
+        _exclusives.where((n) => ![7, 14, 30].contains(n)).toList(),
+        i,
+      );
       _readyChip();
     });
   }
@@ -693,57 +703,64 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
       initializeDateFormatting('ja');
       String testId = DateTime.now().toIso8601String();
       List<Question> questions = await getQuestions(
-          widget.selectedExam,
-          _selectedCategory,
-          _selectTimesOption == 2 ? _times : [],
-          _selectTimesOption == 3 ? _times : [],
-          _selectTimesOption == 1 ? _times : [],
-          // _executeTimes.contains(-1) ? [] : _executeTimes,
-          // _mistakeTimes.contains(-1) ? [] : _mistakeTimes,
-          // _correctTimes.contains(-1) ? [] : _correctTimes,
-          _noOfQuestions,
-          _otherOptions.contains(-1) ? [] : _otherOptions,
-          _priorities,
-          _exclusives.contains(-1) ? [] : _exclusives,
-          _selectTargetOption == 1 ? [1, 2, 3, 4, 5] : _scorings,
-          _targetDaysAgos,
-          _retention,
-          _order,
-          _exceptNotReady,
-          this._token);
+        widget.selectedExam,
+        _selectedCategory,
+        _selectTimesOption == 2 ? _times : [],
+        _selectTimesOption == 3 ? _times : [],
+        _selectTimesOption == 1 ? _times : [],
+        // _executeTimes.contains(-1) ? [] : _executeTimes,
+        // _mistakeTimes.contains(-1) ? [] : _mistakeTimes,
+        // _correctTimes.contains(-1) ? [] : _correctTimes,
+        _noOfQuestions,
+        _otherOptions.contains(-1) ? [] : _otherOptions,
+        _priorities,
+        _exclusives.contains(-1) ? [] : _exclusives,
+        _selectTargetOption == 1 ? [1, 2, 3, 4, 5] : _scorings,
+        _targetDaysAgos,
+        _retention,
+        _order,
+        _exceptNotReady,
+        this._token,
+      );
 
       if (questions.length < 1) {
         showAlertDialog(context, "対象はありませんでした");
       } else {
         Question question = await getQuestion(questions[0], this._token);
         Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => QuizPage(
-                      testId: testId,
-                      questions: questions,
-                      question: question,
-                      readOnly: _readOnly,
-                      training: _training,
-                      shuffle: _shuffle,
-                    )));
+          context,
+          MaterialPageRoute(
+            builder: (_) => QuizPage(
+              testId: testId,
+              questions: questions,
+              question: question,
+              readOnly: _readOnly,
+              training: _training,
+              shuffle: _shuffle,
+            ),
+          ),
+        );
       }
     } on SocketException catch (_) {
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (_) => ErrorPage(
-                    message:
-                        "Can't reach the servers, \n Please check your internet connection.",
-                  )));
+        context,
+        MaterialPageRoute(
+          builder: (_) => ErrorPage(
+            message:
+                "Can't reach the servers, \n Please check your internet connection.",
+          ),
+        ),
+      );
     } catch (e) {
       print(e);
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (_) => ErrorPage(
-                    message: "Unexpected error trying to connect to the API",
-                  )));
+        context,
+        MaterialPageRoute(
+          builder: (_) => ErrorPage(
+            message: "Unexpected error trying to connect to the API",
+          ),
+        ),
+      );
     }
     setState(() => _processing = false);
   }
@@ -759,9 +776,7 @@ class _QuizConditionsDialogState extends State<QuizConditionsDialog> {
     AlertDialog alert = AlertDialog(
       title: Text("エラー"),
       content: Text(message),
-      actions: [
-        okButton,
-      ],
+      actions: [okButton],
     );
 
     // show the dialog

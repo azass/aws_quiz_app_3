@@ -6,14 +6,15 @@ class QuizScoringTable extends ScoringTable {
   final List<int> selectedCategory;
 
   QuizScoringTable(
-      this.selectedCategory, List<ScoringTableItem> scoringTableItems)
-      : super(scoringTableItems);
+    this.selectedCategory,
+    List<ScoringTableItem> scoringTableItems,
+  ) : super(scoringTableItems);
 
   @override
   Color bgcolor(ScoringTableItem item) {
     return (selectedCategory.contains(item.tag.tagNo))
         ? Colors.indigo
-        : Colors.grey[800];
+        : Colors.grey.shade800;
   }
 
   @override

@@ -43,36 +43,36 @@ class QuizPage extends StatefulWidget {
   final bool training;
   final bool shuffle;
 
-  const QuizPage(
-      {Key key,
-      @required this.questions,
-      this.question,
-      this.testId,
-      this.readOnly,
-      this.training,
-      this.shuffle})
-      : super(key: key);
+  const QuizPage({
+    Key? key,
+    required this.questions,
+    required this.question,
+    required this.testId,
+    this.readOnly = false,
+    this.training = false,
+    this.shuffle = false,
+  }) : super(key: key);
 
   @override
-  QuizPageState createState() => QuizPageState();
+  QuizPageState createState() => QuizPageState(question);
 }
 
 enum Step { INIT, READY, START, ANSWER, CHECK, END, NEXT }
 
 class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
+  QuizPageState(this._question);
+
   final TextStyle _quizStyle = TextStyle(
-      fontSize: 15.0,
-      height: 1.5,
-      fontWeight: FontWeight.bold,
-      color: CARD_TEXT_COLOR);
+    fontSize: 15.0,
+    height: 1.5,
+    fontWeight: FontWeight.bold,
+    color: CARD_TEXT_COLOR,
+  );
 
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
   final _itemScrollController = ItemScrollController();
   final _itemPositionsListener = ItemPositionsListener.create();
-  final _backgroudColors = [
-    Colors.grey[400],
-    Colors.grey.shade600,
-  ];
+  final _backgroudColors = [Colors.grey.shade400, Colors.grey.shade600];
   final List<Question> _questions = [];
   Question _question;
   List<Option> _options = [];
@@ -83,7 +83,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   int _correct = 0;
   int _executed = 0;
   Step _step = Step.INIT;
-  Timer _timer;
+  Timer? _timer;
   bool _visibleDashboad = false;
   final icons = [
     MenuIcon(Icons.app_registration),
@@ -91,20 +91,18 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     MenuIcon(Icons.arrow_back_ios),
     MenuIcon(Icons.arrow_forward_ios),
     MenuIcon(Icons.content_paste),
-    MenuIcon(Icons.bug_report)
+    MenuIcon(Icons.bug_report),
   ];
-  Color fabsColor = Colors.lightBlue[700];
+  Color fabsColor = Colors.lightBlue.shade700;
   Icon fabsIcon = Icon(Icons.menu);
   String _token = "";
   int _estimatedTime = 0;
 
   @override
-  Future<void> initState() {
+  void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _question = widget.question;
     _watch.start();
-    return null;
   }
 
   @override
@@ -141,18 +139,29 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       child: Scaffold(
         key: _key,
         appBar: AppBar(
-            title: QuizAppBar(_question.questId, _estimatedTime, _currentIndex,
-                widget.questions.length, widget.readOnly, _isAnswered())),
+          backgroundColor: BACK_COLOR,
+          title: QuizAppBar(
+            _question.questId,
+            _estimatedTime,
+            _currentIndex,
+            widget.questions.length,
+            widget.readOnly,
+            _isAnswered(),
+          ),
+        ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
         floatingActionButton: Padding(
-    padding: const EdgeInsets.only(top: 50.0),
-    child:_buildFab()),
+          padding: const EdgeInsets.only(top: 50.0),
+          child: _buildFab(),
+        ),
         body: Container(
           decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  colors: _backgroudColors,
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter)),
+            gradient: LinearGradient(
+              colors: _backgroudColors,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
           padding: const EdgeInsets.all(5.0),
           child: ScrollablePositionedList.builder(
             itemCount: 13,
@@ -181,7 +190,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         case 4:
           return (!widget.readOnly && _isAnswered())
               ? QuizScoring(question: _question, parent: this)
-              : null;
+              : const SizedBox.shrink();
         case 5:
           return QuizBook(_question, widget.readOnly, _isAnswered());
         case 6:
@@ -198,9 +207,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               ? SizedBox(height: 0.0)
               : SizedBox(height: 15.0);
         case 9:
-          if (widget.readOnly ||
-              !_isAnswered() ||
-              (_isAnswered()))
+          if (widget.readOnly || !_isAnswered() || (_isAnswered()))
             return Container(
               alignment: Alignment.bottomCenter,
               child: _processing
@@ -211,13 +218,12 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         case 10:
           return SizedBox(height: 40.0);
         case 11:
-          if (_visibleDashboad)
-            return Dashboard(_question.exam);
+          if (_visibleDashboad) return Dashboard(_question.exam);
           break;
         case 12:
           return SizedBox(height: 50.0);
       }
-    return null;
+    return const SizedBox.shrink();
   }
 
   bool _isAnswered() {
@@ -235,8 +241,8 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               ..._options.asMap().entries.map(
-                    (option) => _buildOptionInk(option.value, option.key),
-                  ),
+                (option) => _buildOptionInk(option.value, option.key),
+              ),
             ],
           ),
         ),
@@ -258,11 +264,14 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
           setState(() {});
         },
         children: <Widget>[
-          ...option.selectOptions.map((selectOption) => Ink(
+          ...option.selectOptions.map(
+            (selectOption) => Ink(
               color: _step.index >= Step.CHECK.index
                   ? selectOption.bgColor
                   : Colors.white,
-              child: _buildSelectOption(selectOption, option)))
+              child: _buildSelectOption(selectOption, option),
+            ),
+          ),
         ],
       );
     }
@@ -274,30 +283,36 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       bool selected = option.code == selectedCode;
       return RadioListTile(
         title: _buildOptionTitle(option),
-        tileColor:
-            _step.index >= Step.CHECK.index ? option.bgColor : CARD_COLOR,
+        tileColor: _step.index >= Step.CHECK.index
+            ? option.bgColor
+            : CARD_COLOR,
         dense: false,
         contentPadding: EdgeInsets.all(4.0),
+        horizontalTitleGap: 4.0,
         activeColor: CARD_TEXT_COLOR,
         selected: selected,
         groupValue: selectedCode,
         value: option.code,
         toggleable: false,
-        onChanged:
-            _step.index < Step.CHECK.index ? (value) => _answer(option) : null,
+        onChanged: _step.index < Step.CHECK.index
+            ? (value) => _answer(option)
+            : null,
       );
     } else {
       return CheckboxListTile(
-        tileColor:
-            _step.index >= Step.CHECK.index ? option.bgColor : CARD_COLOR,
+        tileColor: _step.index >= Step.CHECK.index
+            ? option.bgColor
+            : CARD_COLOR,
         dense: false,
         contentPadding: EdgeInsets.all(4.0),
+        horizontalTitleGap: 4.0,
         activeColor: CARD_TEXT_COLOR,
         value: _question.choice.contains(option.code),
         title: _buildOptionTitle(option),
         controlAffinity: ListTileControlAffinity.leading,
-        onChanged:
-            _step.index < Step.CHECK.index ? (value) => _answer(option) : null,
+        onChanged: _step.index < Step.CHECK.index
+            ? (value) => _answer(option)
+            : null,
       );
     }
   }
@@ -305,6 +320,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   Widget _buildSelectOption(SelectOption selectOption, Option option) {
     return RadioListTile(
       title: _buildOptionText(selectOption.label),
+      horizontalTitleGap: 4.0,
       selected: selectOption.isSelected,
       groupValue: option.selectValue(),
       value: selectOption.value,
@@ -320,11 +336,12 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       return _buildOptionText(option.text);
     } else {
       return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-        _buildOptionText(option.text),
-        QuizImage(option.imagePath)
-      ]);
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _buildOptionText(option.text),
+          QuizImage(option.imagePath),
+        ],
+      );
     }
   }
 
@@ -346,42 +363,46 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     }
   }
 
-  Widget _buildTagsPart() {
+  Widget buildTagsPart() {
     return QuizTags(this);
   }
 
   Widget _buildElevatedButton() {
     return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: <Widget>[
-          SizedBox(
-              width: 98.0,
-              height: 98.0,
-              child: ElevatedButton(
-                child: Text(
-                  (_step.index <= Step.READY.index)
-                      ? "Start"
-                      : (_step == Step.START)
-                          ? "Skip"
-                          : (_step == Step.ANSWER)
-                              ? "Answer"
-                              : "Next",
-                  style: MediaQuery.of(context).size.width > 800
-                      ? TextStyle(fontSize: 38.0, color: Colors.white)
-                      : TextStyle(fontSize: 19.0, color: Colors.white),
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: <Widget>[
+        SizedBox(
+          width: 98.0,
+          height: 98.0,
+          child: ElevatedButton(
+            child: Text(
+              (_step.index <= Step.READY.index)
+                  ? "Start"
+                  : (_step == Step.START)
+                  ? "Skip"
+                  : (_step == Step.ANSWER)
+                  ? "Answer"
+                  : "Next",
+              style: MediaQuery.of(context).size.width > 800
+                  ? TextStyle(fontSize: 38.0, color: Colors.white)
+                  : TextStyle(fontSize: 19.0, color: Colors.white),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: CircleBorder(
+                side: BorderSide(
+                  color: Colors.red,
+                  // width: 0.0,
+                  style: BorderStyle.solid,
                 ),
-                style: ElevatedButton.styleFrom(
-                    shape: CircleBorder(
-                  side: BorderSide(
-                    color: Colors.red,
-                    // width: 0.0,
-                    style: BorderStyle.solid,
-                  ),
-                )),
-                onPressed: _submit,
-              )),
-        ]);
+              ),
+            ),
+            onPressed: _submit,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildFab() {
@@ -421,10 +442,11 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     Navigator.pop(context);
     WordsDialog wordsDialog = WordsDialog(words);
     await showDialog<bool>(
-        context: context,
-        builder: (_) {
-          return wordsDialog;
-        });
+      context: context,
+      builder: (_) {
+        return wordsDialog;
+      },
+    );
   }
 
   Future<void> _openBook() async {
@@ -432,10 +454,11 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     Navigator.pop(context);
     BookDialog bookDialog = BookDialog(_question.histories);
     await showDialog<bool>(
-        context: context,
-        builder: (_) {
-          return bookDialog;
-        });
+      context: context,
+      builder: (_) {
+        return bookDialog;
+      },
+    );
   }
 
   void _openLearningNote() {
@@ -495,7 +518,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     } else if (_question.moreStudy) {
       fabsColor = Colors.deepPurpleAccent;
     } else {
-      fabsColor = Colors.lightBlue[700];
+      fabsColor = Colors.lightBlue.shade700;
     }
     if (_question.learningNote != "") {
       fabsIcon = Icon(Icons.help_outline_rounded);
@@ -506,13 +529,14 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
   void _showToast(String text, [Color color = Colors.pink]) {
     Fluttertoast.showToast(
-        msg: text,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
-        timeInSecForIosWeb: 2,
-        backgroundColor: color,
-        textColor: Colors.white,
-        fontSize: 16.0);
+      msg: text,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.TOP,
+      timeInSecForIosWeb: 2,
+      backgroundColor: color,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   void _onTimer(Timer timer) {
@@ -531,7 +555,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   void _offTimer() {
     if (_question.watch.isRunning) _question.watch.stop();
     _question.watch.reset();
-    if (_timer.isActive) _timer.cancel();
+    _timer?.cancel();
   }
 
   void _submit() {
@@ -561,7 +585,8 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     }
     _options.forEach((_option) => _option.onAnswer(_question));
     setState(
-        () => _step = (_question.choice.length > 0) ? Step.ANSWER : Step.START);
+      () => _step = (_question.choice.length > 0) ? Step.ANSWER : Step.START,
+    );
   }
 
   void _answer2(SelectOption option) {
@@ -569,12 +594,17 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       _question.choice = List.filled(_options.length, "");
     }
     _question.choice[option.index] = option.value;
-    _options.forEach((_option) => _option.selectOptions
-        .forEach((__option) => __option.onAnswer(_question)));
-    setState(() => _step =
-        (_question.choice.where((choice) => choice != "").toList().length > 0)
-            ? Step.ANSWER
-            : Step.START);
+    _options.forEach(
+      (_option) => _option.selectOptions.forEach(
+        (__option) => __option.onAnswer(_question),
+      ),
+    );
+    setState(
+      () => _step =
+          (_question.choice.where((choice) => choice != "").toList().length > 0)
+          ? Step.ANSWER
+          : Step.START,
+    );
   }
 
   Future<void> _checkAnswer() async {
@@ -626,8 +656,10 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       // setState(() => _processing = true);
       showLoading(context);
       _step = Step.NEXT;
-      _question =
-          await getQuestion(widget.questions[++_currentIndex], this._token);
+      _question = await getQuestion(
+        widget.questions[++_currentIndex],
+        this._token,
+      );
       Navigator.pop(context);
       setState(() {
         _step = Step.INIT;
@@ -643,9 +675,11 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   void _setEstimatedTime() {
     if (!widget.readOnly) {
       _estimatedTime = 0;
-      for (int i = _currentIndex + (_isAnswered() ? 1 : 0);
-          i < widget.questions.length;
-          i++) {
+      for (
+        int i = _currentIndex + (_isAnswered() ? 1 : 0);
+        i < widget.questions.length;
+        i++
+      ) {
         if (widget.questions[i].answeredAvgTime > 0) {
           _estimatedTime += widget.questions[i].answeredAvgTime;
         } else {
@@ -659,8 +693,10 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     if (_currentIndex > 0) {
       _offTimer();
       setState(() => _processing = true);
-      _question =
-          await getQuestion(widget.questions[--_currentIndex], this._token);
+      _question = await getQuestion(
+        widget.questions[--_currentIndex],
+        this._token,
+      );
 
       setState(() {
         _step = Step.INIT;
@@ -676,55 +712,72 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     int executedTime = _watch.elapsed.inSeconds;
     String answerDate = widget.testId.substring(0, 10);
     if (!widget.training) finishQuiz(answerDate, executedTime);
-    DailyRecord record =
-        DailyRecord(answerDate, _executed, _correct, _point, executedTime);
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (_) =>
-            DailyRecordPage(questions: _questions, record: record)));
+    DailyRecord record = DailyRecord(
+      answerDate,
+      _executed,
+      _correct,
+      _point,
+      executedTime,
+    );
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => DailyRecordPage(questions: _questions, record: record),
+      ),
+    );
   }
 
   Future<bool> _onWillPop() async {
-    return showDialog<bool>(
-        context: context,
-        builder: (_) {
-          return AlertDialog(
-            content: Text("Do you want to quit ？"),
-            title: Text("Confirm!"),
-            actions: <Widget>[
-              TextButton(
-                child: Text("Yes"),
-                onPressed: () {
-                  Navigator.pop(context, true);
-                  _finish();
-                },
-              ),
-              TextButton(
+    return await showDialog<bool>(
+          context: context,
+          builder: (_) {
+            return AlertDialog(
+              content: Text("Do you want to quit ？"),
+              title: Text("Confirm!"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("Yes"),
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                    _finish();
+                  },
+                ),
+                TextButton(
                   child: Text("No"),
-                  onPressed: () => Navigator.pop(context, false)),
-            ],
-          );
-        });
+                  onPressed: () => Navigator.pop(context, false),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
   }
 
   Future<bool> _showLevelUp(int level) async {
-    return showDialog<bool>(
-        context: context,
-        builder: (_) {
-          return SimpleDialog(
+    final imagePath = levelupImagePaths[level];
+    if (imagePath == null) return false;
+    return await showDialog<bool>(
+          context: context,
+          builder: (_) {
+            return SimpleDialog(
               backgroundColor: Colors.transparent,
               children: <Widget>[
                 Container(
-                    height: 400.0,
-                    width: 100.0,
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      image: DecorationImage(
-                          image: AssetImage(levelupImagePaths[level]),
-                          fit: BoxFit.contain),
-                    )),
+                  height: 400.0,
+                  width: 100.0,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    image: DecorationImage(
+                      image: AssetImage(imagePath),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
               ],
-              contentPadding: EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 16.0));
-        });
+              contentPadding: EdgeInsets.fromLTRB(0.0, 16.0, 0.0, 16.0),
+            );
+          },
+        ) ??
+        false;
   }
 
   // _actionOnMistake() {

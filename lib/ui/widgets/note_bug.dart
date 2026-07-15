@@ -25,7 +25,8 @@ class _BugNoteDialogState extends State<BugNoteDialog> {
   @override
   void initState() {
     super.initState();
-    memoTextController.text = widget.question.bugPoints['memo'];
+    memoTextController.text =
+        widget.question.bugPoints['memo']?.toString() ?? '';
   }
 
   @override
@@ -42,48 +43,54 @@ class _BugNoteDialogState extends State<BugNoteDialog> {
     memoTextController.selection = TextSelection.fromPosition(
       TextPosition(offset: memoTextController.text.length),
     );
-    return Column(children: <Widget>[
-      Row(
-        children: this._buildBugCheckboxesAndButton(),
-      ),
-      Padding(
+    return Column(
+      children: <Widget>[
+        Row(children: this._buildBugCheckboxesAndButton()),
+        Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
             decoration: InputDecoration(
-                border: OutlineInputBorder(), labelText: "memo"),
+              border: OutlineInputBorder(),
+              labelText: "memo",
+            ),
             maxLines: 4,
             controller: memoTextController,
             onChanged: (text) {
               if (!widget.question.updateBugMemo)
                 setState(() => widget.question.updateBugMemo = true);
             },
-          )),
-    ]);
+          ),
+        ),
+      ],
+    );
   }
 
   List<Widget> _buildBugCheckboxesAndButton() {
     List<Widget> tempList = [
       Container(
-          width: 40.0,
-          child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 2.0),
-              child: IconButton(
-                icon: Icon(Icons.flare),
-                color: widget.question.bugPoints.isEmpty
-                    ? Colors.lightBlueAccent
-                    : Colors.pink,
-                iconSize: 24,
-                onPressed: () {
-                  if (widget.question.bugPoints.isNotEmpty) {
-                    widget.question.bugPoints.clear();
-                    updateBugReport(
-                        widget.question.questId,
-                        widget.question.bugPoints.isNotEmpty,
-                        widget.question.bugPoints);
-                    setState(() => widget.question.updateBugMemo = false);
-                  }
-                },
-              )))
+        width: 40.0,
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 2.0),
+          child: IconButton(
+            icon: Icon(Icons.flare),
+            color: widget.question.bugPoints.isEmpty
+                ? Colors.lightBlueAccent
+                : Colors.pink,
+            iconSize: 24,
+            onPressed: () {
+              if (widget.question.bugPoints.isNotEmpty) {
+                widget.question.bugPoints.clear();
+                updateBugReport(
+                  widget.question.questId,
+                  widget.question.bugPoints.isNotEmpty,
+                  widget.question.bugPoints,
+                );
+                setState(() => widget.question.updateBugMemo = false);
+              }
+            },
+          ),
+        ),
+      ),
     ];
     // tempList.add(Padding(
     //     padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 0.0),
@@ -92,35 +99,44 @@ class _BugNoteDialogState extends State<BugNoteDialog> {
     //       child: QuizChip("要復習", "", _isMoreStudy, _onChangedMoreStudy),
     //     )));
     this._bugCheckboxLabel.forEach((key, label) {
-      tempList.add(Container(
+      tempList.add(
+        Container(
           child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 0.0),
-              child: Container(
-                width: 66.0,
-                child: QuizChip(label, key, _isCheck, _onChanged),
-              ))));
+            padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 0.0),
+            child: Container(
+              width: 66.0,
+              child: QuizChip(label, key, _isCheck, _onChanged),
+            ),
+          ),
+        ),
+      );
     });
-    tempList.add(Container(
+    tempList.add(
+      Container(
         width: 40.0,
         child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 0.0),
-            child: IconButton(
-              icon: Icon(Icons.send),
-              color: widget.question.updateBugMemo ? Colors.pink : Colors.grey,
-              iconSize: 24,
-              onPressed: () {
-                if (memoTextController.text == "") {
-                  widget.question.bugPoints.remove("memo");
-                } else {
-                  widget.question.bugPoints["memo"] = memoTextController.text;
-                }
-                updateBugReport(
-                    widget.question.questId,
-                    widget.question.bugPoints.isNotEmpty,
-                    widget.question.bugPoints);
-                setState(() => widget.question.updateBugMemo = false);
-              },
-            ))));
+          padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 0.0),
+          child: IconButton(
+            icon: Icon(Icons.send),
+            color: widget.question.updateBugMemo ? Colors.pink : Colors.grey,
+            iconSize: 24,
+            onPressed: () {
+              if (memoTextController.text == "") {
+                widget.question.bugPoints.remove("memo");
+              } else {
+                widget.question.bugPoints["memo"] = memoTextController.text;
+              }
+              updateBugReport(
+                widget.question.questId,
+                widget.question.bugPoints.isNotEmpty,
+                widget.question.bugPoints,
+              );
+              setState(() => widget.question.updateBugMemo = false);
+            },
+          ),
+        ),
+      ),
+    );
     return tempList;
   }
 
@@ -135,18 +151,13 @@ class _BugNoteDialogState extends State<BugNoteDialog> {
       widget.question.bugPoints.remove(key);
     }
     widget.question.isBug = widget.question.bugPoints.isNotEmpty;
-    updateBugReport(widget.question.questId, widget.question.isBug,
-        widget.question.bugPoints);
-    setState(() {widget.parent.setState(() => {});});
-  }
-
-  bool _isMoreStudy(String key) {
-    return widget.question.moreStudy;
-  }
-
-  void _onChangedMoreStudy(String key) {
-    widget.question.moreStudy = !widget.question.moreStudy;
-    updateMoreStudy(widget.question.questId, widget.question.moreStudy);
-    setState(() => {});
+    updateBugReport(
+      widget.question.questId,
+      widget.question.isBug,
+      widget.question.bugPoints,
+    );
+    setState(() {
+      widget.parent.setState(() => {});
+    });
   }
 }

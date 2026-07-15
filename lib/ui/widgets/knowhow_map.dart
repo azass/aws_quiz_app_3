@@ -14,69 +14,89 @@ class KnowhowMap extends StatelessWidget {
   Widget build(BuildContext context) {
     if (items.isEmpty) return SizedBox(height: 0.0);
     return Container(
-        decoration: BoxDecoration(color: Colors.blueGrey[900]),
-        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                  padding: EdgeInsets.only(left: 4.0, bottom: 4.0),
-                  child: Text("ノウハウマップ（知識 × 習熟度）",
-                      style: TextStyle(
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white70))),
-              _buildLegend(),
-              SizedBox(height: 4.0),
-              ...items.map((item) => _buildNode(item)),
-            ]));
+      decoration: BoxDecoration(color: Colors.blueGrey[900]),
+      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(left: 4.0, bottom: 4.0),
+            child: Text(
+              "ノウハウマップ（知識 × 習熟度）",
+              style: TextStyle(
+                fontSize: 12.0,
+                fontWeight: FontWeight.w600,
+                color: Colors.white70,
+              ),
+            ),
+          ),
+          _buildLegend(),
+          SizedBox(height: 4.0),
+          ...items.map((item) => _buildNode(item)),
+        ],
+      ),
+    );
   }
 
   Widget _buildLegend() {
     Widget chip(String label, Color color) => Padding(
-        padding: EdgeInsets.only(right: 6.0),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
+      padding: EdgeInsets.only(right: 6.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           Container(width: 10, height: 10, color: color),
           SizedBox(width: 3.0),
-          Text(label,
-              style: TextStyle(fontSize: 9.0, color: Colors.white54)),
-        ]));
+          Text(label, style: TextStyle(fontSize: 9.0, color: Colors.white54)),
+        ],
+      ),
+    );
     return Padding(
-        padding: EdgeInsets.only(left: 4.0),
-        child: Row(children: [
+      padding: EdgeInsets.only(left: 4.0),
+      child: Row(
+        children: [
           chip("未定着", _heatColor(10)),
           chip("学習中", _heatColor(50)),
           chip("定着", _heatColor(90)),
           chip("熟達", _heatColor(120)),
-        ]));
+        ],
+      ),
+    );
   }
 
   Widget _buildNode(ScoringTableItem item) {
     final color = _heatColor(item.avgMastery);
     return Container(
-        margin: EdgeInsets.only(left: item.indent * 3.0, bottom: 3.0),
-        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
-        decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.42),
-            // 非一様Border(left)とborderRadiusは併用不可のため一様枠線にする
-            border: Border.all(color: color, width: 1.2),
-            borderRadius: BorderRadius.circular(3.0)),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                  child: Text(item.label,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white))),
-              Text(
-                  "M ${item.avgMastery.toStringAsFixed(0)}  "
-                  "正答 ${(item.correctAnswerRate * 100).round()}%  "
-                  "${item.questionCount}問",
-                  style: TextStyle(fontSize: 9.5, color: Colors.white70)),
-            ]));
+      margin: EdgeInsets.only(left: item.indent * 3.0, bottom: 3.0),
+      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.42),
+        // 非一様Border(left)とborderRadiusは併用不可のため一様枠線にする
+        border: Border.all(color: color, width: 1.2),
+        borderRadius: BorderRadius.circular(3.0),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              item.label,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          Text(
+            "M ${item.avgMastery.toStringAsFixed(0)}  "
+            "正答 ${(item.correctAnswerRate * 100).round()}%  "
+            "${item.questionCount}問",
+            style: TextStyle(fontSize: 9.5, color: Colors.white70),
+          ),
+        ],
+      ),
+    );
   }
 
   /// mastery(0〜120+) を赤→黄→緑のヒートカラーに変換する。

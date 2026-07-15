@@ -9,23 +9,24 @@ class Term {
   String explain = "";
   bool selected = false;
   String changed = "";
-  Term(
-      {this.termId,
-      this.word,
-      this.level,
-      this.sort,
-      this.description,
-      this.explain,
-      this.selected,
-      this.changed});
+  Term({
+    required this.termId,
+    required this.word,
+    required this.level,
+    this.sort = 0,
+    this.description = const [],
+    this.explain = '',
+    this.selected = false,
+    this.changed = '',
+  });
 
   Term.fromMap(Map<String, dynamic> data)
-      : termId = data['term_id'],
-        word = data['word'],
-        level = data['level'],
-        sort = data['sort'],
-        description = data['description'],
-        explain = data['explain'];
+    : termId = data['term_id'],
+      word = data['word'],
+      level = data['level'],
+      sort = data['sort'],
+      description = data['description'],
+      explain = data['explain'];
 
   static newTermId() {
     return "trm-" + Uuid().v4().substring(0, 6);
@@ -35,12 +36,13 @@ class Term {
     return data
         .map(
           (keyword) => Term(
-              termId: keyword['term_id'],
-              word: keyword['word'],
-              level: keyword['level'],
-              sort: keyword['sort'],
-              description: keyword['description'],
-              explain: keyword['explain']),
+            termId: keyword['term_id'],
+            word: keyword['word'],
+            level: keyword['level'],
+            sort: keyword['sort'],
+            description: keyword['description'],
+            explain: keyword['explain'],
+          ),
         )
         .toList();
   }

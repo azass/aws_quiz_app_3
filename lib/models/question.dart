@@ -5,6 +5,7 @@ import 'package:aws_quiz_app/models/tag.dart';
 import 'package:aws_quiz_app/utils/DateUtil.dart';
 
 enum Type { multiple, boolean }
+
 enum Difficulty { easy, medium, hard }
 
 class Question {
@@ -44,7 +45,7 @@ class Question {
   double priority = 1.0;
   String passDate;
   Stopwatch watch;
-  Exam exam;
+  Exam? _exam;
   String learningNote = "";
   bool updateBugMemo = false;
   bool updateNote = false;
@@ -56,25 +57,81 @@ class Question {
   int last_point = 0;
   double last_addPoint = 0.0;
 
+  Exam get exam {
+    final value = _exam;
+    if (value == null) {
+      throw StateError('Question details have not been loaded.');
+    }
+    return value;
+  }
+
+  set exam(Exam value) => _exam = value;
+
   Question.fromRecordMap(Map<String, dynamic> data)
-      : questId = data["quest_id"],
-        examId = data["exam_id"],
-        examNo = data["exam_no"],
-        correctCount = data["correct_count"],
-        tags = data["tags"],
-        answeredAvgTime = data["answered_average_time"] != null
-            ? data["answered_average_time"]
-            : 0;
+    : questId = data["quest_id"],
+      examId = data["exam_id"],
+      examNo = data["exam_no"] ?? 0,
+      correctAnswer = [],
+      answerDate = '',
+      answerTime = 0,
+      answeredTime = 0,
+      imagePath = '',
+      imageHeight = 0,
+      explanation = [],
+      executeCount = 0,
+      mistakeCount = 0,
+      keywords = [],
+      histories = [],
+      options = [],
+      questionElems = [],
+      testId = '',
+      readTime = 0,
+      passDate = '',
+      watch = Stopwatch(),
+      scoring = 0,
+      newScoring = 0,
+      retention = 0,
+      _exam = null,
+      halving_time = 0,
+      halving_date = '',
+      correctCount = data["correct_count"],
+      tags = data["tags"],
+      answeredAvgTime = data["answered_average_time"] != null
+          ? data["answered_average_time"]
+          : 0;
 
   Question.fromHistoryMap(Map<String, dynamic> data)
-      : questId = data["quest_id"],
-        examId = data["quest_id"].toString().substring(0, 7),
-        examNo = int.parse(data["quest_id"].toString().substring(8)),
-        testId = data["test_id"],
-        choice = data["choice"],
-        judgment = data["judgment"] == true,
-        answerDate = data['answer_date'],
-        answeredTime = data["answered_time"];
+    : questId = data["quest_id"],
+      examId = data["quest_id"].toString().substring(0, 7),
+      examNo = int.parse(data["quest_id"].toString().substring(8)),
+      testId = data["test_id"],
+      choice = data["choice"],
+      judgment = data["judgment"] == true,
+      answerDate = data['answer_date'],
+      answeredTime = data["answered_time"],
+      answerTime = 0,
+      answeredAvgTime = 0,
+      correctAnswer = [],
+      correctCount = 0,
+      executeCount = 0,
+      explanation = [],
+      halving_date = '',
+      halving_time = 0,
+      histories = [],
+      imageHeight = 0,
+      imagePath = '',
+      keywords = [],
+      mistakeCount = 0,
+      newScoring = 0,
+      options = [],
+      passDate = '',
+      questionElems = [],
+      readTime = 0,
+      retention = 0,
+      scoring = 0,
+      tags = [],
+      _exam = null,
+      watch = Stopwatch();
 
   void setup(Map<String, dynamic> data) {
     examNo = data["exam_no"];
@@ -85,9 +142,10 @@ class Question {
     } else {
       options = [];
     }
-    imagePath = data["image_path"];
-    imageHeight =
-        data["image_height"] != null ? data["image_height"].toDouble() : 0.0;
+    imagePath = data["image_path"] ?? '';
+    imageHeight = data["image_height"] != null
+        ? data["image_height"].toDouble()
+        : 0.0;
     explanation = data["explanation"] != null ? data["explanation"] : [];
     executeCount = data["execute_count"];
     correctCount = data["correct_count"];
@@ -106,8 +164,8 @@ class Question {
     bugPoints = (data["bug_points"] == null)
         ? {}
         : (data["bug_points"].length == 0)
-            ? {}
-            : data["bug_points"];
+        ? {}
+        : data["bug_points"];
     learningNote = (data["learning_note"] == null) ? "" : data["learning_note"];
     scoring = data["scoring"] == null ? 0 : data["scoring"];
     retention = data["retention"] != null ? data["retention"] : 0;
@@ -129,7 +187,9 @@ class Question {
   }
 
   static List<Option> fromOptionsData(
-      List<dynamic> data, List<dynamic> correctAnswer) {
+    List<dynamic> data,
+    List<dynamic> correctAnswer,
+  ) {
     List<Option> list = [];
     data.asMap().forEach((index, element) {
       list.add(Option.fromMap(index, element, correctAnswer));
@@ -227,18 +287,17 @@ class Question {
   }
 
   Tag getTag(String tagKeywordsKey) {
-    Tag tag = null;
-    tags.forEach((_tag) {
+    for (final Tag tag in tags) {
       if (int.tryParse(tagKeywordsKey) == null) {
-        if (_tag.tagName == tagKeywordsKey) {
-          tag = _tag;
+        if (tag.tagName == tagKeywordsKey) {
+          return tag;
         }
       } else {
-        if (_tag.tagNo == int.parse(tagKeywordsKey)) {
-          tag = _tag;
+        if (tag.tagNo == int.parse(tagKeywordsKey)) {
+          return tag;
         }
       }
-    });
-    return tag;
+    }
+    throw StateError('No tag matches $tagKeywordsKey.');
   }
 }

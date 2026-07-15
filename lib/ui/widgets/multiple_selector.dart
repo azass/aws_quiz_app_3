@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 
 class MultipleSelector extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => _MultipleSelectorState();
-
 }
 
 class _MultipleSelectorState extends State<MultipleSelector> {
-
   List<int> _executeTimes = [-1];
 
   @override
@@ -27,7 +24,7 @@ class _MultipleSelectorState extends State<MultipleSelector> {
           _buildChip("１回", 1),
           _buildChip("２回", 2),
           _buildChip("３回", 3),
-          _buildChip("４回以上", 4,),
+          _buildChip("４回以上", 4),
           SizedBox(width: 5.0),
         ],
       ),

@@ -8,19 +8,32 @@ class MenuFabs extends StatefulWidget {
   final Icon icon;
   ValueChanged<int> onIconTapped;
 
-  MenuFabs({this.icons, this.color, this.icon, this.onIconTapped});
+  MenuFabs({
+    required this.icons,
+    required this.color,
+    required this.icon,
+    required this.onIconTapped,
+  });
 
   @override
   State createState() => MenuFabsState();
 }
 
 class MenuFabsState extends State<MenuFabs> with TickerProviderStateMixin {
-  AnimationController _controller;
+  AnimationController? _controllerValue;
+
+  AnimationController get _controller {
+    final value = _controllerValue;
+    if (value == null) {
+      throw StateError('Animation controller has not been initialized.');
+    }
+    return value;
+  }
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _controllerValue = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 250),
     );
@@ -33,10 +46,7 @@ class MenuFabsState extends State<MenuFabs> with TickerProviderStateMixin {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(widget.icons.length, (int index) {
         return _buildChild(index);
-      }).toList()
-        ..add(
-          _buildFabMenu(),
-        ),
+      }).toList()..add(_buildFabMenu()),
     );
   }
 
@@ -49,15 +59,20 @@ class MenuFabsState extends State<MenuFabs> with TickerProviderStateMixin {
       child: ScaleTransition(
         scale: CurvedAnimation(
           parent: _controller,
-          curve: Interval(0.0, 1.0 - index / widget.icons.length / 2.0,
-              curve: Curves.easeOut),
+          curve: Interval(
+            0.0,
+            1.0 - index / widget.icons.length / 2.0,
+            curve: Curves.easeOut,
+          ),
         ),
         child: FloatingActionButton(
           backgroundColor: backgroundColor,
           mini: true,
           heroTag: "hero$index",
-          child:
-              Icon(widget.icons[index].icon, color: widget.icons[index].color),
+          child: Icon(
+            widget.icons[index].icon,
+            color: Colors.indigo,
+          ),
           onPressed: () => _onTapped(index),
         ),
       ),
@@ -66,23 +81,31 @@ class MenuFabsState extends State<MenuFabs> with TickerProviderStateMixin {
 
   Widget _buildFabMenu() {
     return Container(
-        height: 50.0,
-        width: 50.0,
-        alignment: FractionalOffset.topCenter,
-        child: FloatingActionButton(
-          onPressed: () {
-            if (_controller.isDismissed) {
-              _controller.forward();
-            } else {
-              _controller.reverse();
-            }
-          },
-          mini: true,
-          heroTag: "heroFabMenu",
-          child: widget.icon,
-          elevation: 2.0,
-          backgroundColor: widget.color,
-        ));
+      height: 50.0,
+      width: 50.0,
+      alignment: FractionalOffset.topCenter,
+      child: FloatingActionButton(
+        onPressed: () {
+          if (_controller.isDismissed) {
+            _controller.forward();
+          } else {
+            _controller.reverse();
+          }
+        },
+        shape: const CircleBorder(),
+        mini: true,
+        heroTag: "heroFabMenu",
+        child: Icon(
+          widget.icon.icon,
+          color: Colors.white,
+          size: widget.icon.size,
+          semanticLabel: widget.icon.semanticLabel,
+          textDirection: widget.icon.textDirection,
+        ),
+        elevation: 2.0,
+        backgroundColor: widget.color,
+      ),
+    );
   }
 
   void _onTapped(int index) {

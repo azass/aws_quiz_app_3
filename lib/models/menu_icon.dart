@@ -6,7 +6,7 @@ class MenuIcon {
   MenuIcon(IconData icon) : icon = icon;
 
   void setupColor(bool exist) {
-    color = (exist) ? Colors.pinkAccent:Colors.indigo;
+    color = (exist) ? Colors.pinkAccent : Colors.indigo;
   }
 
   void setColor(Color color) {

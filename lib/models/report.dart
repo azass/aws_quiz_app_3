@@ -4,23 +4,32 @@ import 'package:aws_quiz_app/models/tag.dart';
 
 class Report {
   final Exam exam;
-  Tag tag;
+  Tag? _tag;
   Scoring scoring;
   List<ScoringTableItem> scoringTableItems;
 
-  Report.fromMap(Map<String, dynamic> data)
-      : exam = Exam.fromMap(data),
-        scoring = Scoring.fromMap(data),
-        scoringTableItems = data['items']
-            .map<ScoringTableItem>((item) => ScoringTableItem.fromReport(item))
-            .toList();
+  Tag get tag {
+    final value = _tag;
+    if (value == null) {
+      throw StateError('This report does not contain a tag.');
+    }
+    return value;
+  }
 
-  Report.from(this.exam, this.tag, Map<String, dynamic> data)
-      : scoringTableItems = data['items']
-            .map<ScoringTableItem>(
-                (item) => ScoringTableItem.fromTagReport(item))
-            .toList(),
-        scoring = Scoring.fromMap(data);
+  Report.fromMap(Map<String, dynamic> data)
+    : exam = Exam.fromMap(data),
+      _tag = null,
+      scoring = Scoring.fromMap(data),
+      scoringTableItems = data['items']
+          .map<ScoringTableItem>((item) => ScoringTableItem.fromReport(item))
+          .toList();
+
+  Report.from(this.exam, Tag tag, Map<String, dynamic> data)
+    : _tag = tag,
+      scoringTableItems = data['items']
+          .map<ScoringTableItem>((item) => ScoringTableItem.fromTagReport(item))
+          .toList(),
+      scoring = Scoring.fromMap(data);
 
   static List<ScoringTableItem> toScoringTableItems(List<dynamic> items) {
     List<ScoringTableItem> scoringTableItems = [];
@@ -39,17 +48,17 @@ class ReportItem {
   final double avgRetention;
 
   ReportItem.fromMap(Map<String, dynamic> data)
-      : tag = Tag.fromMap(data),
-        questionCount = data['question_count'],
-        correctAnswerRate = data['execute_count'] == 0
-            ? 0.0
-            : (data['correct_count'] > data['execute_count'])
-                ? 1.0
-                : data['correct_count'] / data['execute_count'],
-        completionRate = (data['complete_count'] > data['total_count'])
-            ? 1.0
-            : data['complete_count'] / data['total_count'],
-        avgRetention = data['tag_avg_retention'].toDouble();
+    : tag = Tag.fromMap(data),
+      questionCount = data['question_count'],
+      correctAnswerRate = data['execute_count'] == 0
+          ? 0.0
+          : (data['correct_count'] > data['execute_count'])
+          ? 1.0
+          : data['correct_count'] / data['execute_count'],
+      completionRate = (data['complete_count'] > data['total_count'])
+          ? 1.0
+          : data['complete_count'] / data['total_count'],
+      avgRetention = data['tag_avg_retention'].toDouble();
 
   String toRatePercentage(double rate) {
     int percatege = (rate * 100.0).round();
@@ -67,7 +76,7 @@ final Map<int, String> hashiraImagePaths = {
   6: "images/hebi.png",
   7: "images/kasumi.png",
   8: "images/kaze.png",
-  9: "images/iwa.png"
+  9: "images/iwa.png",
 };
 
 final Map<int, String> levelImagePaths = {
@@ -80,7 +89,7 @@ final Map<int, String> levelImagePaths = {
   6: "images/hebi_s.png",
   7: "images/kasumi_s.png",
   8: "images/kaze_s.png",
-  9: "images/iwa_s.png"
+  9: "images/iwa_s.png",
 };
 
 final Map<int, String> levelupImagePaths = {
@@ -93,5 +102,5 @@ final Map<int, String> levelupImagePaths = {
   6: "images/hebi_m.png",
   7: "images/kasumi_m.png",
   8: "images/kaze_m.png",
-  9: "images/iwa_m.png"
+  9: "images/iwa_m.png",
 };

@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 final historyColor = [
   Colors.white,
-  Colors.red[200],
-  Colors.pink[100],
-  Colors.red[100],
-  Colors.pink[50],
-  Colors.red[50],
-  Colors.orange[100],
-  Colors.yellow[300],
-  Colors.limeAccent[200],
-  Colors.lightGreenAccent[200],
-  Colors.lightBlueAccent[100]
+  Colors.red.shade200,
+  Colors.pink.shade100,
+  Colors.red.shade100,
+  Colors.pink.shade50,
+  Colors.red.shade50,
+  Colors.orange.shade100,
+  Colors.yellow.shade300,
+  Colors.limeAccent.shade200,
+  Colors.lightGreenAccent.shade200,
+  Colors.lightBlueAccent.shade100,
 ];
 
 final scoringName = [
@@ -44,16 +44,19 @@ String formatTime(int time) {
 
 void showLoading(BuildContext context) {
   showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      transitionDuration: Duration(milliseconds: 250), // ダイアログフェードインmsec
-      barrierColor: Colors.black.withValues(alpha: 0.5), // 画面マスクの透明度
-      pageBuilder: (BuildContext context, Animation animation,
-          Animation secondaryAnimation) {
-        return Center(
-          child: CircularProgressIndicator(),
-        );
-      });
+    context: context,
+    barrierDismissible: false,
+    transitionDuration: Duration(milliseconds: 250), // ダイアログフェードインmsec
+    barrierColor: Colors.black.withValues(alpha: 0.5), // 画面マスクの透明度
+    pageBuilder:
+        (
+          BuildContext context,
+          Animation animation,
+          Animation secondaryAnimation,
+        ) {
+          return Center(child: CircularProgressIndicator());
+        },
+  );
 }
 
 var icons = [
@@ -73,21 +76,22 @@ var icons = [
   Icon(Icons.skateboarding),
   Icon(Icons.task_alt),
   Icon(Icons.thumb_up_outlined),
-  Icon(Icons.my_library_add_outlined)
+  Icon(Icons.my_library_add_outlined),
 ];
 
+final BACK_COLOR = Colors.pinkAccent;
 // final CARD_COLOR = Colors.blueGrey[400];
 // final CARD_TEXT_COLOR = Colors.teal[800];
-final CARD_COLOR = Colors.teal[50];
-final CARD_TEXT_COLOR = Colors.green[800];
+final CARD_COLOR = Colors.teal.shade50;
+final CARD_TEXT_COLOR = Colors.green.shade800;
 
 final List termColors = [
-  {"color": Colors.indigoAccent[200], "text": "1"},
-  {"color": Colors.blue[600], "text": "2"},
-  {"color": Colors.indigo[300], "text": "3"},
-  {"color": Colors.blue[300], "text": "4"},
-  {"color": Colors.teal[300], "text": "5"},
-  {"color": Colors.green[300], "text": "6"},
+  {"color": Colors.indigoAccent.shade200, "text": "1"},
+  {"color": Colors.blue.shade600, "text": "2"},
+  {"color": Colors.indigo.shade300, "text": "3"},
+  {"color": Colors.blue.shade300, "text": "4"},
+  {"color": Colors.teal.shade300, "text": "5"},
+  {"color": Colors.green.shade300, "text": "6"},
 ];
 
 final priority = ["捨て問", "後回し", "通常", "必須"];

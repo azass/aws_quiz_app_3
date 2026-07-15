@@ -8,15 +8,13 @@ class KnowhowNote {
   final String updateDate;
 
   KnowhowNote.fromMap(Map<String, dynamic> data)
-      : tagNo = data['tag_no'],
-        tagName = data['tag_name'] ?? '',
-        content = data['content'] ?? '',
-        sourceCount = data['source_count'] ?? 0,
-        updateDate = data['update_date'] ?? '';
+    : tagNo = data['tag_no'],
+      tagName = data['tag_name'] ?? '',
+      content = data['content'] ?? '',
+      sourceCount = data['source_count'] ?? 0,
+      updateDate = data['update_date'] ?? '';
 
   static List<KnowhowNote> fromList(List<dynamic> data) {
-    return data
-        .map<KnowhowNote>((item) => KnowhowNote.fromMap(item))
-        .toList();
+    return data.map<KnowhowNote>((item) => KnowhowNote.fromMap(item)).toList();
   }
 }
