@@ -45,7 +45,54 @@ class _HomePageState extends State<HomePage> {
     // final UserState userState = Provider.of<UserState>(context);
     // userState.setToken("token");
     return Scaffold(
-      appBar: AppBar(title: Text('Certified Quiz'), elevation: 0),
+      appBar: AppBar(
+        title: Text('Certified Quiz'),
+        elevation: 0,
+        actions: [
+          Consumer<AppPaletteState>(
+            builder: (context, paletteState, _) => PopupMenuButton<AppPalette>(
+              tooltip: 'カラーパレットを選択',
+              icon: const Icon(Icons.palette_outlined),
+              initialValue: paletteState.selected,
+              onSelected: paletteState.select,
+              itemBuilder: (context) => AppPalette.values.map((palette) {
+                final colors = appPalettes[palette]!;
+                return CheckedPopupMenuItem<AppPalette>(
+                  value: palette,
+                  checked: paletteState.selected == palette,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 22.0,
+                        height: 22.0,
+                        decoration: BoxDecoration(
+                          color: colors.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: colors.accent, width: 3.0),
+                        ),
+                      ),
+                      const SizedBox(width: 10.0),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            colors.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            colors.description,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
       body: new RefreshIndicator(
         onRefresh: _onRefresh,
         child: Stack(

@@ -2,6 +2,7 @@ import 'package:aws_quiz_app/models/daily_record.dart';
 import 'package:aws_quiz_app/models/provider.dart';
 import 'package:aws_quiz_app/resources/api_provider.dart';
 import 'package:aws_quiz_app/ui/pages/home_page.dart';
+import 'package:aws_quiz_app/ui/util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,23 +31,47 @@ class MyApp extends StatelessWidget {
   final UserState userState = UserState();
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<UserState>(
-      create: (context) => UserState(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'aws_quiz_app_3',
-        theme: ThemeData(
-          primarySwatch: Colors.red,
-          fontFamily: "NotoScansJP",
-          buttonTheme: ButtonThemeData(
-            buttonColor: Colors.red,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            textTheme: ButtonTextTheme.primary,
-          ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<UserState>(create: (_) => UserState()),
+        ChangeNotifierProvider<AppPaletteState>(
+          create: (_) => AppPaletteState(),
         ),
-        home: HomePage(providers: providers, records: records),
+      ],
+      child: Consumer<AppPaletteState>(
+        builder: (context, paletteState, _) {
+          final colors = paletteState.colors;
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'aws_quiz_app_3',
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: colors.primary,
+                primary: colors.primary,
+                secondary: colors.accent,
+                surface: colors.card,
+              ),
+              scaffoldBackgroundColor: colors.card,
+              fontFamily: "NotoScansJP",
+              appBarTheme: AppBarTheme(
+                backgroundColor: colors.primary,
+                foregroundColor: Colors.white,
+              ),
+              buttonTheme: ButtonThemeData(
+                buttonColor: colors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                textTheme: ButtonTextTheme.primary,
+              ),
+              floatingActionButtonTheme: FloatingActionButtonThemeData(
+                backgroundColor: colors.accent,
+                foregroundColor: Colors.white,
+              ),
+            ),
+            home: HomePage(providers: providers, records: records),
+          );
+        },
       ),
     );
   }

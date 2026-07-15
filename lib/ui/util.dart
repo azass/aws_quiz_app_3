@@ -79,11 +79,79 @@ var icons = [
   Icon(Icons.my_library_add_outlined),
 ];
 
-final BACK_COLOR = Colors.pinkAccent;
-// final CARD_COLOR = Colors.blueGrey[400];
-// final CARD_TEXT_COLOR = Colors.teal[800];
-final CARD_COLOR = Colors.teal.shade50;
-final CARD_TEXT_COLOR = Colors.green.shade800;
+enum AppPalette { deepFocus, organicMint, activeGamified }
+
+class AppPaletteColors {
+  final String name;
+  final String description;
+  final Color primary;
+  final Color accent;
+  final Color background;
+  final Color card;
+  final Color text;
+
+  const AppPaletteColors({
+    required this.name,
+    required this.description,
+    required this.primary,
+    required this.accent,
+    required this.background,
+    required this.card,
+    required this.text,
+  });
+}
+
+const appPalettes = <AppPalette, AppPaletteColors>{
+  AppPalette.deepFocus: AppPaletteColors(
+    name: 'Deep Focus',
+    description: '知的集中・王道ブルー',
+    primary: Color(0xFF1E3A5F),
+    accent: Color(0xFF3B82F6),
+    background: Color(0xFF315B8A),
+    card: Color(0xFFF4F8FF),
+    text: Color(0xFF16324F),
+  ),
+  AppPalette.organicMint: AppPaletteColors(
+    name: 'Organic Mint',
+    description: '疲労軽減・読解力重視',
+    primary: Color(0xFF2F6F64),
+    accent: Color(0xFF55B89A),
+    background: Color(0xFF3F8F7F),
+    card: Color(0xFFF1FBF7),
+    text: Color(0xFF24564E),
+  ),
+  AppPalette.activeGamified: AppPaletteColors(
+    name: 'Active Gamified',
+    description: '継続・モチベーション重視',
+    primary: Color(0xFF6D28D9),
+    accent: Color(0xFFF97316),
+    background: Color(0xFFF97316),
+    card: Color(0xFFFFF7ED),
+    text: Color(0xFF5B21B6),
+  ),
+};
+
+AppPaletteColors currentPaletteColors = appPalettes[AppPalette.deepFocus]!;
+Color BACK_COLOR = currentPaletteColors.background;
+Color CARD_COLOR = currentPaletteColors.card;
+Color CARD_TEXT_COLOR = currentPaletteColors.text;
+
+class AppPaletteState extends ChangeNotifier {
+  AppPalette _selected = AppPalette.deepFocus;
+
+  AppPalette get selected => _selected;
+  AppPaletteColors get colors => appPalettes[_selected]!;
+
+  void select(AppPalette palette) {
+    if (_selected == palette) return;
+    _selected = palette;
+    currentPaletteColors = colors;
+    BACK_COLOR = colors.background;
+    CARD_COLOR = colors.card;
+    CARD_TEXT_COLOR = colors.text;
+    notifyListeners();
+  }
+}
 
 final List termColors = [
   {"color": Colors.indigoAccent.shade200, "text": "1"},
