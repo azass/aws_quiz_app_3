@@ -1,6 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="awsquizapp.aws_quiz_app_3">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
     <application
         android:label="aws_quiz_app_3"
         android:icon="@mipmap/ic_launcher">

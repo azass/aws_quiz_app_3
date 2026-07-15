@@ -5,13 +5,19 @@ import 'package:aws_quiz_app/ui/widgets/quiz_link.dart';
 import 'package:aws_quiz_app/ui/widgets/quiz_markdown.dart';
 import 'package:aws_quiz_app/ui/widgets/tag_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:html_unescape/html_unescape.dart';
 
 import '../util.dart';
 import 'keyword_dialog.dart';
 
 class QuizExplanation extends StatelessWidget {
   final Question _question;
-  const QuizExplanation(this._question);
+  final double speechRate;
+  const QuizExplanation(
+    this._question, {
+    required this.speechRate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -258,6 +264,7 @@ class QuizExplanation extends StatelessWidget {
     // 共通タブが選択された状態で再表示されるようにする。
     return _ProviderTabbedMemo(
       _question.explanation,
+      speechRate: speechRate,
       key: ValueKey(_question.questId),
     );
   }
@@ -306,7 +313,12 @@ Widget buildExplanationItem(Map<String, dynamic> explanation) {
 /// スワイプ＆スクロール可能なタブで表示するメモウィジェット。
 class _ProviderTabbedMemo extends StatefulWidget {
   final List<dynamic> explanations;
-  const _ProviderTabbedMemo(this.explanations, {Key? key}) : super(key: key);
+  final double speechRate;
+  const _ProviderTabbedMemo(
+    this.explanations, {
+    required this.speechRate,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<_ProviderTabbedMemo> createState() => _ProviderTabbedMemoState();
@@ -330,6 +342,10 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
   TabController? _tabController;
   List<String> _providers = [];
   Map<String, List<dynamic>> _grouped = {};
+  final FlutterTts _flutterTts = FlutterTts();
+  bool _isSpeaking = false;
+  bool _isSpeechPaused = false;
+  String? _speakingProvider;
 
   @override
   void initState() {
@@ -341,12 +357,144 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
       vsync: this,
       initialIndex: 0,
     );
+    _configureTts();
   }
 
   @override
   void dispose() {
+    _flutterTts.stop();
     _tabController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ProviderTabbedMemo oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.speechRate != widget.speechRate) {
+      _flutterTts.setSpeechRate(widget.speechRate);
+    }
+  }
+
+  Future<void> _configureTts() async {
+    _flutterTts.setCompletionHandler(_speechFinished);
+    _flutterTts.setCancelHandler(_speechFinished);
+    _flutterTts.setErrorHandler((_) => _speechFinished());
+    await _flutterTts.setLanguage('ja-JP');
+    await _flutterTts.setSpeechRate(widget.speechRate);
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+  }
+
+  Future<void> _toggleSpeech(String providerKey) async {
+    if (_isSpeaking && _speakingProvider == providerKey) {
+      if (_isSpeechPaused) {
+        final text = _speechText(
+          _grouped[providerKey] ?? const <dynamic>[],
+        );
+        final result = await _flutterTts.speak(text);
+        if (result == 1 && mounted) {
+          setState(() => _isSpeechPaused = false);
+        } else if (result != 1) {
+          _speechFinished();
+        }
+      } else {
+        final result = await _flutterTts.pause();
+        if (result == 1 && mounted) {
+          setState(() => _isSpeechPaused = true);
+        }
+      }
+      return;
+    }
+
+    if (_isSpeaking) {
+      await _flutterTts.stop();
+      _speechFinished();
+    }
+
+    final text = _speechText(_grouped[providerKey] ?? const <dynamic>[]);
+    if (text.isEmpty) return;
+    if (mounted) {
+      setState(() {
+        _isSpeaking = true;
+        _isSpeechPaused = false;
+        _speakingProvider = providerKey;
+      });
+    }
+    final result = await _flutterTts.speak(text);
+    if (result != 1) _speechFinished();
+  }
+
+  Future<void> _stopSpeech() async {
+    await _flutterTts.stop();
+    _speechFinished();
+  }
+
+  void _speechFinished() {
+    if (mounted && _isSpeaking) {
+      setState(() {
+        _isSpeaking = false;
+        _isSpeechPaused = false;
+        _speakingProvider = null;
+      });
+    }
+  }
+
+  String _speechText(List<dynamic> explanations) {
+    final parts = <String>[];
+    for (final explanation in explanations) {
+      if (explanation is! Map) continue;
+      final value = explanation['text'] ?? explanation['link'];
+      if (value != null && value.toString().trim().isNotEmpty) {
+        parts.add(value.toString());
+      }
+    }
+    return HtmlUnescape()
+        .convert(parts.join(' '))
+        .replaceAllMapped(
+          RegExp(r'\[([^\]]+)\]\([^)]+\)'),
+          (match) => match.group(1) ?? '',
+        )
+        .replaceAll(RegExp(r'[`*_>#~-]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  Widget _buildTabLabel(String providerKey) {
+    final isCurrentSpeech =
+        _isSpeaking && _speakingProvider == providerKey;
+    return Row(
+      spacing: 0,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(_tabLabel(providerKey)),
+        IconButton(
+          tooltip: isCurrentSpeech
+              ? (_isSpeechPaused ? '読み上げを再開する' : '読み上げを一時停止する')
+              : '説明を読み上げる',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(width: 28.0, height: 28.0),
+          iconSize: 18.0,
+          icon: Icon(
+            isCurrentSpeech
+                ? (_isSpeechPaused ? Icons.play_arrow : Icons.pause)
+                : Icons.volume_up,
+          ),
+          onPressed: () => _toggleSpeech(providerKey),
+        ),
+        if (isCurrentSpeech)
+          IconButton(
+            tooltip: '読み上げを停止する',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(
+              width: 28.0,
+              height: 28.0,
+            ),
+            iconSize: 18.0,
+            icon: const Icon(Icons.stop),
+            onPressed: _stopSpeech,
+          ),
+      ],
+    );
   }
 
   // provider ごとにグループ化し、_providerOrder の順に並べる。
@@ -397,7 +545,7 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
     // provider が 1 種類以下なら従来通りタブなしで表示する。
     if (_providers.length <= 1) {
       final key = _providers.isEmpty ? _defaultProviderKey : _providers.first;
-      return _buildMemoCard(_grouped[key] ?? widget.explanations);
+      return _buildMemoCard(key, _grouped[key] ?? widget.explanations);
     }
 
     return Card(
@@ -413,7 +561,9 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
             unselectedLabelColor: Colors.teal[300],
             indicatorColor: Colors.teal[700],
             labelStyle: TextStyle(fontSize: 13.0, fontWeight: FontWeight.bold),
-            tabs: _providers.map((p) => Tab(text: _tabLabel(p))).toList(),
+            tabs: _providers
+                .map((p) => Tab(child: _buildTabLabel(p)))
+                .toList(),
           ),
           // スワイプで切替可能・各タブ内は縦スクロール可能なタブビュー。
           ConstrainedBox(
@@ -427,8 +577,8 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
                 final items = _grouped[p] ?? const <dynamic>[];
                 return SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10.0,
-                    vertical: 10.0,
+                    horizontal: 5.0,
+                    vertical: 5.0,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -446,7 +596,7 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
   }
 
   // タブなし（provider が 1 種類以下）の場合の従来表示。
-  Widget _buildMemoCard(List<dynamic> explanations) {
+  Widget _buildMemoCard(String providerKey, List<dynamic> explanations) {
     return Card(
       color: CARD_COLOR,
       child: Padding(
@@ -454,6 +604,10 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
+            Align(
+              alignment: Alignment.centerLeft,
+              child: _buildTabLabel(providerKey),
+            ),
             ...explanations.map((e) => buildExplanationItem(e)),
           ],
         ),

@@ -6,12 +6,16 @@ class MenuFabs extends StatefulWidget {
   final List<MenuIcon> icons;
   final Color color;
   final Icon icon;
+  final double speechRate;
+  final ValueChanged<double> onSpeechRateChanged;
   ValueChanged<int> onIconTapped;
 
   MenuFabs({
     required this.icons,
     required this.color,
     required this.icon,
+    required this.speechRate,
+    required this.onSpeechRateChanged,
     required this.onIconTapped,
   });
 
@@ -41,12 +45,68 @@ class MenuFabsState extends State<MenuFabs> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(widget.icons.length, (int index) {
-        return _buildChild(index);
-      }).toList()..add(_buildFabMenu()),
+    final children = List.generate(widget.icons.length, (int index) {
+      return _buildChild(index);
+    }).toList();
+    children.add(_buildFabMenu());
+    return SizedBox(
+      width: widget.icons.length * 56.0 + 50.0,
+      height: 96.0,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Row(mainAxisSize: MainAxisSize.min, children: children),
+          ),
+          Positioned(
+            top: 52.0,
+            right: 0,
+            child: _buildSpeechRateSlider(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpeechRateSlider() {
+    return ScaleTransition(
+      scale: CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+      child: Container(
+        width: 120.0,
+        height: 40.0,
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.speed, size: 18.0, color: Colors.white),
+            Expanded(
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  trackHeight: 2.0,
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 6.0,
+                  ),
+                  overlayShape: const RoundSliderOverlayShape(
+                    overlayRadius: 10.0,
+                  ),
+                ),
+                child: Slider(
+                  value: widget.speechRate,
+                  min: 0.25,
+                  max: 1.0,
+                  divisions: 15,
+                  label: '${widget.speechRate.toStringAsFixed(2)}x',
+                  onChanged: widget.onSpeechRateChanged,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

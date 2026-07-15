@@ -30,6 +30,7 @@ import 'package:aws_quiz_app/ui/widgets/quiz_scoring.dart';
 import 'package:aws_quiz_app/ui/widgets/quiz_tags.dart';
 import 'package:aws_quiz_app/ui/widgets/words_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:provider/src/provider.dart';
@@ -97,18 +98,25 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   Icon fabsIcon = Icon(Icons.menu);
   String _token = "";
   int _estimatedTime = 0;
+  final FlutterTts _flutterTts = FlutterTts();
+  bool _isSpeaking = false;
+  bool _isSpeechPaused = false;
+  String? _activeSpeechText;
+  double _speechRate = 0.5;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _watch.start();
+    unawaited(_configureTts());
   }
 
   @override
   void dispose() {
     _offTimer();
     _watch.stop();
+    _flutterTts.stop();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -117,6 +125,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive) {
       print('inactive');
+      _flutterTts.stop();
       _offTimer();
       _watch.stop();
     } else if (state == AppLifecycleState.resumed) {
@@ -124,6 +133,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       _watch.start();
     } else if (state == AppLifecycleState.paused) {
       print('paused');
+      _flutterTts.stop();
       _offTimer();
       _watch.stop();
     }
@@ -180,7 +190,16 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         case 0:
           return QuizQuestHead(_question);
         case 1:
-          return QuizQuestCard(_question);
+          return QuizQuestCard(
+            _question,
+            onToggleSpeech: _toggleSpeech,
+            onStopSpeech: _stopSpeech,
+            isSpeaking:
+                _isSpeaking &&
+                _activeSpeechText ==
+                    _normalizeSpeechText(_question.toString()),
+            isSpeechPaused: _isSpeechPaused,
+          );
         case 2:
           return SizedBox(height: 5.0);
         case 3:
@@ -200,7 +219,10 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
           return SizedBox(height: 0.0);
         case 7:
           return _isAnswered()
-              ? QuizExplanation(_question)
+              ? QuizExplanation(
+                  _question,
+                  speechRate: _speechRate,
+                )
               : SizedBox(height: 0.0);
         case 8:
           return (widget.readOnly)
@@ -236,7 +258,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       margin: const EdgeInsets.all(5.0),
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.only(right: 5.0, top: 20.0, bottom: 20.0),
+          padding: const EdgeInsets.only(right: 5.0, top: 20.0, bottom: 0.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -287,7 +309,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             ? option.bgColor
             : CARD_COLOR,
         dense: false,
-        contentPadding: EdgeInsets.all(4.0),
+        contentPadding: EdgeInsets.all(0.0),
         horizontalTitleGap: 4.0,
         activeColor: CARD_TEXT_COLOR,
         selected: selected,
@@ -304,7 +326,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
             ? option.bgColor
             : CARD_COLOR,
         dense: false,
-        contentPadding: EdgeInsets.all(4.0),
+        contentPadding: EdgeInsets.all(0.0),
         horizontalTitleGap: 4.0,
         activeColor: CARD_TEXT_COLOR,
         value: _question.choice.contains(option.code),
@@ -319,7 +341,10 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
   Widget _buildSelectOption(SelectOption selectOption, Option option) {
     return RadioListTile(
-      title: _buildOptionText(selectOption.label),
+      title: _buildTextWithSpeakButton(
+        _buildOptionText(selectOption.label),
+        selectOption.label,
+      ),
       horizontalTitleGap: 4.0,
       selected: selectOption.isSelected,
       groupValue: option.selectValue(),
@@ -331,11 +356,147 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     );
   }
 
+  Future<void> _configureTts() async {
+    _flutterTts.setCompletionHandler(_speechFinished);
+    _flutterTts.setCancelHandler(_speechFinished);
+    _flutterTts.setErrorHandler((_) => _speechFinished());
+    await _flutterTts.setLanguage('ja-JP');
+    await _flutterTts.setSpeechRate(_speechRate);
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+  }
+
+  Future<void> _toggleSpeech(String text) async {
+    final speechText = _normalizeSpeechText(text);
+    if (speechText.isEmpty) return;
+
+    if (_isSpeaking && _activeSpeechText == speechText) {
+      if (_isSpeechPaused) {
+        final result = await _flutterTts.speak(speechText);
+        if (result == 1 && mounted) {
+          setState(() => _isSpeechPaused = false);
+        } else if (result != 1) {
+          _speechFinished();
+        }
+      } else {
+        final result = await _flutterTts.pause();
+        if (result == 1 && mounted) {
+          setState(() => _isSpeechPaused = true);
+        }
+      }
+      return;
+    }
+
+    if (_isSpeaking) await _stopSpeech();
+    if (mounted) {
+      setState(() {
+        _isSpeaking = true;
+        _isSpeechPaused = false;
+        _activeSpeechText = speechText;
+      });
+    }
+    final result = await _flutterTts.speak(speechText);
+    if (result != 1) _speechFinished();
+  }
+
+  Future<void> _stopSpeech() async {
+    await _flutterTts.stop();
+    _speechFinished();
+  }
+
+  void _speechFinished() {
+    if (!mounted || !_isSpeaking) return;
+    setState(() {
+      _isSpeaking = false;
+      _isSpeechPaused = false;
+      _activeSpeechText = null;
+    });
+  }
+
+  String _normalizeSpeechText(String text) {
+    return HtmlUnescape()
+        .convert(text)
+        .replaceAllMapped(
+          RegExp(r'\[([^\]]+)\]\([^)]+\)'),
+          (match) => match.group(1) ?? '',
+        )
+        .replaceAll(RegExp(r'[`*_>#~-]+'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  Widget _buildSpeakButton(String text, {required String tooltip}) {
+    final isActive = _activeSpeechText == _normalizeSpeechText(text);
+    return IconButton(
+      tooltip: isActive && _isSpeaking
+          ? (_isSpeechPaused ? '読み上げを再開する' : '読み上げを一時停止する')
+          : tooltip,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 20.0, height: 20.0),
+      iconSize: 20.0,
+      visualDensity: VisualDensity.compact,
+      icon: Icon(
+        isActive && _isSpeaking
+            ? (_isSpeechPaused ? Icons.play_arrow : Icons.pause)
+            : Icons.volume_up,
+      ),
+      onPressed: () => _toggleSpeech(text),
+    );
+  }
+
+  Widget _buildSpeechControls(String text, {required String tooltip}) {
+    final isActive =
+        _isSpeaking && _activeSpeechText == _normalizeSpeechText(text);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildSpeakButton(text, tooltip: tooltip),
+        if (isActive)
+          IconButton(
+            tooltip: '読み上げを停止する',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(
+              width: 20.0,
+              height: 20.0,
+            ),
+            iconSize: 20.0,
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.stop),
+            onPressed: _stopSpeech,
+          ),
+      ],
+    );
+  }
+
+  void _changeSpeechRate(double value) {
+    setState(() => _speechRate = value);
+    _flutterTts.setSpeechRate(value);
+  }
+
+  Widget _buildTextWithSpeakButton(Widget content, String text) {
+    return Column(
+      spacing: 0,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        content,
+        SizedBox(
+          height: 20.0,
+          child: Align(
+            alignment: Alignment.topRight,
+            child: _buildSpeechControls(text, tooltip: '選択肢を読み上げる'),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildOptionTitle(Option option) {
+    late final Widget content;
     if (option.imagePath == "") {
-      return _buildOptionText(option.text);
+      content = _buildOptionText(option.text);
     } else {
-      return Column(
+      content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           _buildOptionText(option.text),
@@ -343,6 +504,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         ],
       );
     }
+    return _buildTextWithSpeakButton(content, option.text);
   }
 
   Widget _buildOptionText(String text) {
@@ -410,6 +572,8 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       icons: icons,
       color: fabsColor,
       icon: fabsIcon,
+      speechRate: _speechRate,
+      onSpeechRateChanged: _changeSpeechRate,
       onIconTapped: (index) async {
         switch (index) {
           case 0:

@@ -37,6 +37,7 @@ dependencies:
   google_fonts: ^8.1.0
   flutter_svg: ^2.3.0
   data_table_2: ^2.7.2
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   flutter_test:
