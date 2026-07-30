@@ -153,8 +153,14 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     _token = context.select((UserState userState) => userState.token);
     _setEstimatedTime();
     _readyQuiz();
-    return WillPopScope(
-      onWillPop: (widget.readOnly) ? null : _onWillPop,
+    return PopScope<void>(
+      canPop: widget.readOnly,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || widget.readOnly) return;
+        if (await _confirmQuit() && mounted) {
+          _finish();
+        }
+      },
       child: Scaffold(
         key: _key,
         appBar: AppBar(
@@ -342,20 +348,33 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   }
 
   Widget _buildOptionsPart() {
+    final options = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        ..._options.asMap().entries.map(
+          (option) => _buildOptionInk(option.value, option.key),
+        ),
+      ],
+    );
+
     return Card(
       color: CARD_COLOR,
       margin: const EdgeInsets.all(5.0),
       child: Center(
         child: Padding(
           padding: const EdgeInsets.only(right: 5.0, top: 20.0, bottom: 0.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ..._options.asMap().entries.map(
-                (option) => _buildOptionInk(option.value, option.key),
-              ),
-            ],
-          ),
+          child: _question.correctAnswer.length == 1
+              ? RadioGroup<String>(
+                  groupValue: _question.selectCode(),
+                  onChanged: (value) {
+                    if (_step.index >= Step.CHECK.index || value == null) return;
+                    _answer(
+                      _options.firstWhere((option) => option.code == value),
+                    );
+                  },
+                  child: options,
+                )
+              : options,
         ),
       ),
     );
@@ -368,22 +387,33 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         child: _buildOption(option, index),
       );
     } else {
-      return ExpansionTile(
-        title: Text(option.text),
-        textColor: CARD_TEXT_COLOR,
-        onExpansionChanged: (bool changed) {
-          setState(() {});
-        },
-        children: <Widget>[
-          ...option.selectOptions.map(
-            (selectOption) => Ink(
-              color: _step.index >= Step.CHECK.index
-                  ? selectOption.bgColor
-                  : Colors.white,
-              child: _buildSelectOption(selectOption, option),
+      return RadioGroup<String>(
+        groupValue: option.selectValue(),
+        onChanged: (value) {
+          if (_step.index >= Step.CHECK.index || value == null) return;
+          _answer2(
+            option.selectOptions.firstWhere(
+              (selectOption) => selectOption.value == value,
             ),
-          ),
-        ],
+          );
+        },
+        child: ExpansionTile(
+          title: Text(option.text),
+          textColor: CARD_TEXT_COLOR,
+          onExpansionChanged: (bool changed) {
+            setState(() {});
+          },
+          children: <Widget>[
+            ...option.selectOptions.map(
+              (selectOption) => Ink(
+                color: _step.index >= Step.CHECK.index
+                    ? selectOption.bgColor
+                    : Colors.white,
+                child: _buildSelectOption(selectOption),
+              ),
+            ),
+          ],
+        ),
       );
     }
   }
@@ -402,12 +432,9 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
         horizontalTitleGap: 4.0,
         activeColor: CARD_TEXT_COLOR,
         selected: selected,
-        groupValue: selectedCode,
         value: option.code,
         toggleable: false,
-        onChanged: _step.index < Step.CHECK.index
-            ? (value) => _answer(option)
-            : null,
+        enabled: _step.index < Step.CHECK.index,
       );
     } else {
       return CheckboxListTile(
@@ -428,7 +455,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     }
   }
 
-  Widget _buildSelectOption(SelectOption selectOption, Option option) {
+  Widget _buildSelectOption(SelectOption selectOption) {
     return RadioListTile(
       title: _buildTextWithSpeakButton(
         _buildOptionText(selectOption.label),
@@ -436,12 +463,9 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       ),
       horizontalTitleGap: 4.0,
       selected: selectOption.isSelected,
-      groupValue: option.selectValue(),
       value: selectOption.value,
       toggleable: false,
-      onChanged: _step.index < Step.CHECK.index
-          ? (value) => _answer2(selectOption)
-          : null,
+      enabled: _step.index < Step.CHECK.index,
     );
   }
 
@@ -985,7 +1009,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
     );
   }
 
-  Future<bool> _onWillPop() async {
+  Future<bool> _confirmQuit() async {
     return await showDialog<bool>(
           context: context,
           builder: (_) {
@@ -995,10 +1019,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               actions: <Widget>[
                 TextButton(
                   child: Text("Yes"),
-                  onPressed: () {
-                    Navigator.pop(context, true);
-                    _finish();
-                  },
+                  onPressed: () => Navigator.pop(context, true),
                 ),
                 TextButton(
                   child: Text("No"),

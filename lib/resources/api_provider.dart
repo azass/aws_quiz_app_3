@@ -432,9 +432,10 @@ void updateKeywords(
   http.post(Uri.parse(baseApi + "keywords"), body: payload);
 }
 
-void launchURL(String url) async {
-  if (await canLaunch(url)) {
-    await launch(url);
+Future<void> launchURL(String url) async {
+  final uri = Uri.parse(url);
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri);
   } else {
     throw 'Could not launch $url';
   }
