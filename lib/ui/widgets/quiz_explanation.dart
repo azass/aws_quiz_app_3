@@ -297,11 +297,15 @@ Widget buildExplanationItem(Map<String, dynamic> explanation) {
       child: QuizImage(explanation["image_path"]),
     );
   } else {
+    final text = explanation["text"]?.toString() ?? "";
+    final displayText = explanation.containsKey("header")
+        ? "<<${explanation["header"]}>>\n\n$text"
+        : text;
     child = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Align(
         alignment: Alignment.centerLeft,
-        child: QuizMarkdown(explanation["text"]),
+        child: QuizMarkdown(displayText),
       ),
     );
   }
@@ -325,7 +329,7 @@ class _ProviderTabbedMemo extends StatefulWidget {
 }
 
 class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   // provider 未設定の要素をまとめるためのキー。
   static const String _defaultProviderKey = "__default__";
 
@@ -372,6 +376,21 @@ class _ProviderTabbedMemoState extends State<_ProviderTabbedMemo>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.speechRate != widget.speechRate) {
       _flutterTts.setSpeechRate(widget.speechRate);
+    }
+
+    final previousProviderCount = _providers.length;
+    final previousTabIndex = _tabController?.index ?? 0;
+    _groupByProvider();
+
+    if (previousProviderCount != _providers.length) {
+      _tabController?.dispose();
+      _tabController = TabController(
+        length: _providers.length,
+        vsync: this,
+        initialIndex: _providers.isEmpty
+            ? 0
+            : previousTabIndex.clamp(0, _providers.length - 1).toInt(),
+      );
     }
   }
 

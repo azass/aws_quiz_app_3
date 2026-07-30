@@ -213,6 +213,45 @@ void updateScoring(String questId, int scoring) async {
   await http.put(Uri.parse(baseApi + "question"), body: payload);
 }
 
+Future<List<String>> getImportantTexts(String questId) async {
+  final payload = JsonEncoder().convert({
+    "action": "get",
+    "quest_id": questId,
+  });
+  final response = await http.post(
+    Uri.parse(baseApi + "important_sentence"),
+    body: payload,
+    headers: const {"Content-Type": "application/json"},
+  );
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw Exception("Failed to get important texts: ${response.statusCode}");
+  }
+  final result = json.decode(utf8.decode(response.bodyBytes));
+  if (result is! Map || result["ok"] != true || result["phrases"] is! List) {
+    throw const FormatException("Invalid important sentence response");
+  }
+  return List<String>.from(result["phrases"]);
+}
+
+Future<void> updateImportantTexts(
+  String questId,
+  List<String> checked,
+) async {
+  final payload = JsonEncoder().convert({
+    "action": "check",
+    "quest_id": questId,
+    "checked": checked,
+  });
+  final response = await http.post(
+    Uri.parse(baseApi + "important_sentence"),
+    body: payload,
+    headers: const {"Content-Type": "application/json"},
+  );
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw Exception("Failed to update important texts: ${response.statusCode}");
+  }
+}
+
 void updateMoreStudy(String questId, bool moreStudy) async {
   Map<String, dynamic> _payload = {
     "quest_id": questId,

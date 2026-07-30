@@ -24,6 +24,8 @@ import 'package:aws_quiz_app/ui/widgets/quiz_bottom_sheet.dart';
 import 'package:aws_quiz_app/ui/widgets/quiz_dashboard.dart';
 import 'package:aws_quiz_app/ui/widgets/quiz_explanation.dart';
 import 'package:aws_quiz_app/ui/widgets/quiz_image.dart';
+import 'package:aws_quiz_app/ui/widgets/quiz_important_checklist.dart';
+import 'package:aws_quiz_app/ui/widgets/quiz_learning_part.dart';
 import 'package:aws_quiz_app/ui/widgets/quiz_quest_card.dart';
 import 'package:aws_quiz_app/ui/widgets/quiz_quest_head.dart';
 import 'package:aws_quiz_app/ui/widgets/quiz_scoring.dart';
@@ -103,13 +105,20 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
   bool _isSpeechPaused = false;
   String? _activeSpeechText;
   double _speechRate = 0.5;
+  bool _isScoringCompleted = false;
+  List<String> _importantTexts = [];
+  List<bool> _importantTextSelections = [];
+  bool _submittingImportantTexts = false;
+  bool _importantTextsSubmitted = false;
 
   @override
   void initState() {
     super.initState();
+    _resetImportantTexts();
     WidgetsBinding.instance.addObserver(this);
     _watch.start();
     unawaited(_configureTts());
+    if (!widget.readOnly) unawaited(_loadImportantTexts());
   }
 
   @override
@@ -199,24 +208,42 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
                 _activeSpeechText ==
                     _normalizeSpeechText(_question.toString()),
             isSpeechPaused: _isSpeechPaused,
+            importantTexts: (!widget.readOnly && _isAnswered())
+                ? _importantTexts
+                : const [],
+            importantTextSelections: (!widget.readOnly && _isAnswered())
+                ? _importantTextSelections
+                : const [],
+            onToggleImportantText: _toggleImportantText,
           );
         case 2:
-          return SizedBox(height: 5.0);
+          return (!widget.readOnly &&
+                  _isAnswered() &&
+                  _importantTexts.isNotEmpty)
+              ? QuizImportantChecklist(
+                  key: ValueKey(_question.questId),
+                  onSubmit: _submitImportantTexts,
+                  submitting: _submittingImportantTexts,
+                )
+              : const SizedBox.shrink();
         case 3:
           return (_step.index >= Step.START.index)
               ? _buildOptionsPart()
               : SizedBox(height: 0.0);
         case 4:
-          return (!widget.readOnly && _isAnswered())
-              ? QuizScoring(question: _question, parent: this)
-              : const SizedBox.shrink();
+          return const SizedBox.shrink();
         case 5:
           return QuizBook(_question, widget.readOnly, _isAnswered());
         case 6:
-          // return (_step.index >= Step.CHECK.index)
-          //     ? _buildTagsPart()
-          //     : SizedBox(height: 0.0);
-          return SizedBox(height: 0.0);
+          return (!widget.readOnly &&
+                  _isAnswered() &&
+                  (_importantTexts.isEmpty || _importantTextsSubmitted))
+              ? QuizScoring(
+                  question: _question,
+                  onChanged: () =>
+                      setState(() => _isScoringCompleted = true),
+                )
+              : const SizedBox.shrink();
         case 7:
           return _isAnswered()
               ? QuizExplanation(
@@ -229,14 +256,21 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
               ? SizedBox(height: 0.0)
               : SizedBox(height: 15.0);
         case 9:
-          if (widget.readOnly || !_isAnswered() || (_isAnswered()))
-            return Container(
-              alignment: Alignment.bottomCenter,
-              child: _processing
-                  ? CircularProgressIndicator()
-                  : _buildElevatedButton(),
-            );
-          break;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              QuizLearningPart(question: _question),
+              if (widget.readOnly ||
+                  !_isAnswered() ||
+                  _isScoringCompleted)
+                Container(
+                  alignment: Alignment.bottomCenter,
+                  child: _processing
+                      ? CircularProgressIndicator()
+                      : _buildElevatedButton(),
+                ),
+            ],
+          );
         case 10:
           return SizedBox(height: 40.0);
         case 11:
@@ -250,6 +284,61 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
 
   bool _isAnswered() {
     return _step.index == Step.END.index;
+  }
+
+  void _toggleImportantText(int index) {
+    setState(() {
+      _importantTextSelections[index] = !_importantTextSelections[index];
+    });
+  }
+
+  void _resetImportantTexts() {
+    _importantTexts = [];
+    _importantTextSelections = [];
+    _submittingImportantTexts = false;
+    _importantTextsSubmitted = false;
+  }
+
+  Future<void> _loadImportantTexts() async {
+    final questId = _question.questId;
+    try {
+      final texts = await getImportantTexts(questId);
+      if (!mounted || _question.questId != questId) return;
+      setState(() {
+        _importantTexts = texts;
+        _importantTextSelections = List<bool>.filled(texts.length, false);
+      });
+    } catch (_) {
+      if (!mounted || _question.questId != questId) return;
+      setState(_resetImportantTexts);
+    }
+  }
+
+  Future<void> _submitImportantTexts() async {
+    setState(() => _submittingImportantTexts = true);
+    try {
+      await updateImportantTexts(
+        _question.questId,
+        [
+          for (var index = 0; index < _importantTexts.length; index++)
+            if (_importantTextSelections[index]) _importantTexts[index],
+        ],
+      );
+      if (!mounted) return;
+      setState(() => _importantTextsSubmitted = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('重要ポイントの状態を送信しました。')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('重要ポイントの送信に失敗しました。')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _submittingImportantTexts = false);
+      }
+    }
   }
 
   Widget _buildOptionsPart() {
@@ -548,7 +637,7 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
                   : "Next",
               style: MediaQuery.of(context).size.width > 800
                   ? TextStyle(fontSize: 38.0, color: Colors.white)
-                  : TextStyle(fontSize: 19.0, color: Colors.white),
+                  : TextStyle(fontSize: 18.0, color: Colors.white),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
@@ -828,9 +917,12 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       setState(() {
         _step = Step.INIT;
         _processing = false;
+        _isScoringCompleted = false;
+        _resetImportantTexts();
         _setEstimatedTime();
         _itemScrollController.jumpTo(index: 0);
       });
+      if (!widget.readOnly) unawaited(_loadImportantTexts());
     } else {
       _finish();
     }
@@ -865,8 +957,11 @@ class QuizPageState extends State<QuizPage> with WidgetsBindingObserver {
       setState(() {
         _step = Step.INIT;
         _processing = false;
+        _isScoringCompleted = false;
+        _resetImportantTexts();
         _itemScrollController.jumpTo(index: 0);
       });
+      if (!widget.readOnly) unawaited(_loadImportantTexts());
     }
   }
 

@@ -17,11 +17,12 @@ class Option {
   Option(
     this.code,
     this.type,
-    this.text,
+    String text,
     this.imagePath,
     this.imageHeight,
     this.isCorrect,
-  ) : correctValue = '' {
+  ) : text = _trimTrailingNewlines(text),
+      correctValue = '' {
     if (isCorrect) {
       bgColor = Colors.lightBlueAccent.shade100;
     }
@@ -31,7 +32,7 @@ class Option {
     : code = '',
       type = data["type"],
       // code = data["correctValue"],
-      text = data["text"],
+      text = _trimTrailingNewlines(data["text"] ?? ""),
       imagePath = '',
       imageHeight = 0,
       selectOptions = SelectOption.fromSelectOptions(
@@ -72,6 +73,10 @@ class Option {
     } else {
       return "";
     }
+  }
+
+  static String _trimTrailingNewlines(String text) {
+    return text.replaceFirst(RegExp(r'(?:\r\n|\r|\n)+$'), '');
   }
 
   String selectValue() {

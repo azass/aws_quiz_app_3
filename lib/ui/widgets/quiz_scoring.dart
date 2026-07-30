@@ -8,9 +8,12 @@ import '../util.dart';
 
 class QuizScoring extends StatefulWidget {
   final Question question;
-  final State parent;
-  const QuizScoring({Key? key, required this.question, required this.parent})
-    : super(key: key);
+  final VoidCallback onChanged;
+  const QuizScoring({
+    Key? key,
+    required this.question,
+    required this.onChanged,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _QuizScoringState();
@@ -88,6 +91,9 @@ class _QuizScoringState extends State<QuizScoring> {
     widget.question.retention = result["retention"];
     widget.question.halving_time = result["halving_time"];
     widget.question.halving_date = result["halving_date"];
+    if (result["explanation"] is List) {
+      widget.question.explanation = result["explanation"];
+    }
     // widget.question.last_point = result["last_point"];
     // widget.question.last_addPoint = 0.0 + result["last_addPoint"];
     _analyze();
@@ -95,9 +101,8 @@ class _QuizScoringState extends State<QuizScoring> {
       _moreStudy();
     }
     Navigator.pop(context);
-    setState(() {
-      widget.parent.setState(() => {});
-    });
+    if (mounted) setState(() {});
+    widget.onChanged();
   }
 
   void _moreStudy() {
